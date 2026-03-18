@@ -156,14 +156,15 @@ export default function TableSessionModal({ table, products, categories = [], on
     const calcBasePrice = (product) => {
         if (!product.special_offers?.is_active) return Number(product.price);
         const offer = product.special_offers;
-        // ✅ FIX: manejar 'percent' Y 'percentage' (ambos se usan en la BD)
+        const val = offer.discount_value;
+        // ✅ Tolerante a formato viejo ('50% OFF') y nuevo ('50')
+        const pct = parseFloat(String(val).replace(/[^0-9.]/g, '')) || 0;
         if (offer.type === 'percent' || offer.type === 'percentage') {
-            const pct = parseFloat(offer.discount_value) || 0;
             return Math.round(Number(product.price) * (1 - pct / 100));
         } else if (offer.type === 'fixed') {
-            return Math.max(0, Number(product.price) - Number(offer.discount_value));
+            return Math.max(0, Number(product.price) - Number(val));
         } else if (offer.type === 'fixed_price') {
-            return Number(offer.discount_value);
+            return Number(val);
         }
         // nxm, 2x1, second_unit → precio unitario sin descuento, el ahorro se calcula a nivel carrito
         return Number(product.price);
@@ -175,18 +176,18 @@ export default function TableSessionModal({ table, products, categories = [], on
     // Ahora: suma la cantidad real de cada línea, independiente de cómo estén agrupadas.
     const getCartPromoSavings = (cartItems) => {
         let savings = 0;
-        // Agrupar por product_id para detectar multi-unidad
         const byProduct = {};
         cartItems.forEach(item => {
             const pid = item.product_id;
             if (!byProduct[pid]) byProduct[pid] = { offer: item.offer, qty: 0, unitPrice: Number(item.unit_price || item.price) };
-            byProduct[pid].qty += Number(item.quantity) || 1; // ✅ usar quantity real
+            byProduct[pid].qty += Number(item.quantity) || 1;
         });
         Object.values(byProduct).forEach(({ offer, qty, unitPrice }) => {
             if (!offer || !offer.is_active) return;
             if (offer.type === 'nxm' || offer.type === '2x1') {
                 let n = 2, m = 1;
                 if (offer.type === 'nxm') {
+                    // ✅ discount_value para nxm es siempre '3x2' etc, no tiene texto extra
                     const parts = (offer.discount_value || '').toLowerCase().split('x');
                     n = parseInt(parts[0]) || 2;
                     m = parseInt(parts[1]) || 1;
@@ -195,7 +196,8 @@ export default function TableSessionModal({ table, products, categories = [], on
                     savings += Math.floor(qty / n) * (n - m) * unitPrice;
                 }
             } else if (offer.type === 'second_unit') {
-                const pct = parseFloat(offer.discount_value) || 0;
+                // ✅ Tolerante a formato viejo ('70% 2da') y nuevo ('70')
+                const pct = parseFloat(String(offer.discount_value).replace(/[^0-9.]/g, '')) || 0;
                 const pairs = Math.floor(qty / 2);
                 savings += pairs * Math.round(unitPrice * pct / 100);
             }

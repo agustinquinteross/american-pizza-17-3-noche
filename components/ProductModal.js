@@ -2,20 +2,21 @@ import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import { X, Check, PenLine } from 'lucide-react';
 
-// ✅ FIX: Helper para formatear precios sin decimales sucios.
-// El problema: sumar floats en JS da resultados como 1250.0000000002
-// porque los números de punto flotante no son exactos en binario.
-// Ejemplo: 1200 + 50.10 = 1250.1000000000001
-//
-// Solución: redondeamos a 2 decimales y luego usamos toLocaleString
-// para mostrar el separador de miles con formato argentino.
+// ✅ Helper para formatear precios sin decimales sucios.
 function formatPrice(amount) {
-  // Math.round(n * 100) / 100 es más preciso que toFixed() para aritmética
   const rounded = Math.round(amount * 100) / 100
-  // Si el resultado es entero, no mostramos decimales (ej: $1.250 en vez de $1.250,00)
   return rounded % 1 === 0
     ? rounded.toLocaleString('es-AR')
     : rounded.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+// ✅ YEW FIX: Parsea el porcentaje de discount_value de forma tolerante.
+// Soporta el formato viejo ('50% OFF', '70% 2da') y el nuevo ('50', '70').
+// parseFloat('50% OFF') → NaN, pero parseFloat('50') → 50.
+// Esta función extrae solo los dígitos numéricos del inicio del string.
+function parsePct(val) {
+  const num = parseFloat(String(val).replace(/[^0-9.]/g, ''));
+  return isNaN(num) ? 0 : num;
 }
 
 export default function ProductModal({ product, isOpen, onClose, onAddToCart }) {
@@ -46,7 +47,7 @@ export default function ProductModal({ product, isOpen, onClose, onAddToCart }) 
 
     if (offer?.is_active) {
       if (offer.type === 'percent' || offer.type === 'percentage') {
-        const pct = parseFloat(offer.discount_value) || 0;
+        const pct = parsePct(offer.discount_value);
         basePrice = Math.round(rawPrice * (1 - pct / 100));
       } else if (offer.type === 'fixed') {
         basePrice = Math.max(0, rawPrice - Number(offer.discount_value));

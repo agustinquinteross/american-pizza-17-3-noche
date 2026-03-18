@@ -19,21 +19,26 @@ export default function AdminOfferForm({ onCancel, onSaved }) {
     e.preventDefault()
     setLoading(true)
     
-    // Generamos la etiqueta visual y el valor lógico automáticamente
+    // ✅ FIX: discount_value debe ser el VALOR LÓGICO PURO, no un texto decorativo.
+    // Toda la lógica de cálculo (parseFloat, split('x'), etc.) depende de esto.
+    // - nxm         → "3x2", "2x1"  (se parsea con split('x'))
+    // - percent     → "50"           (se parsea con parseFloat)
+    // - second_unit → "70"           (se parsea con parseFloat)
+    // La etiqueta visual se genera en getOfferBadge() de cada componente.
     let finalValue = ''
     if (offerType === 'nxm') {
-        finalValue = `${valN}x${valM}` // Ej: 3x2, 2x1, 4x3
+        finalValue = `${valN}x${valM}`   // Ej: "3x2", "2x1"
     } else if (offerType === 'percent') {
-        finalValue = `${valPct}% OFF`  // Ej: 20% OFF
+        finalValue = `${valPct}`          // Ej: "50"  ← NO "50% OFF"
     } else if (offerType === 'second_unit') {
-        finalValue = `${valPct}% 2da`  // Ej: 70% 2da
+        finalValue = `${valPct}`          // Ej: "70"  ← NO "70% 2da"
     }
 
     const offerData = {
         title: title,
         description: description,
-        type: offerType, // 'nxm', 'percent' o 'second_unit'
-        discount_value: finalValue, // Guarda el tag visual y lógico (Ej: "3x2")
+        type: offerType,
+        discount_value: finalValue,
         is_active: true 
     };
 

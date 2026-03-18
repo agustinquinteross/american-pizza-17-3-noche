@@ -16,6 +16,7 @@ export async function PUT(request, { params }) {
       promo_tag,
       is_active,
       stock,
+      offer_id,      // ✅ FIX: antes no se extraía ni se guardaba
       selectedGroups // [1, 2, 5]
     } = data;
 
@@ -23,12 +24,12 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: 'Name and price are required' }, { status: 400 });
     }
 
-    // 1. Update the main product record
+    // 1. Update the main product record (incluyendo offer_id)
     const { rows } = await query(
       `UPDATE products 
        SET name = $1, description = $2, price = $3, cost_price = $4, category_id = $5, 
-           image_url = $6, promo_tag = $7, is_active = $8, stock = $9
-       WHERE id = $10 
+           image_url = $6, promo_tag = $7, is_active = $8, stock = $9, offer_id = $10
+       WHERE id = $11 
        RETURNING *`,
       [
         name, 
@@ -39,7 +40,8 @@ export async function PUT(request, { params }) {
         image_url || null, 
         promo_tag || null, 
         is_active ?? true, 
-        stock ?? 0, 
+        stock ?? 0,
+        offer_id || null,  // ✅ FIX: ahora se guarda correctamente (null = sin promo)
         id
       ]
     );

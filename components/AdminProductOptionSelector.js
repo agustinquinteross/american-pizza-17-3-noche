@@ -28,11 +28,13 @@ export default function AdminProductOptionSelector({ product, modifierGroups, on
         const p = Number(product.price);
         if (!product.special_offers?.is_active) return p;
         const offer = product.special_offers;
-        // \u2705 FIX: manejar 'percent' Y 'percentage' (ambos se usan en la BD)
-        if (offer.type === 'percent' || offer.type === 'percentage') return Math.round(p * (1 - Number(offer.discount_value) / 100));
-        if (offer.type === 'fixed') return Math.max(0, p - Number(offer.discount_value));
-        if (offer.type === 'fixed_price') return Number(offer.discount_value);
-        // nxm, 2x1, second_unit: precio unitario sin cambios, el ahorro es por cantidad
+        const val = offer.discount_value;
+        // ✅ Tolerante al formato viejo ('50% OFF') y nuevo ('50')
+        const pct = parseFloat(String(val).replace(/[^0-9.]/g, '')) || 0;
+        if (offer.type === 'percent' || offer.type === 'percentage') return Math.round(p * (1 - pct / 100));
+        if (offer.type === 'fixed') return Math.max(0, p - Number(val));
+        if (offer.type === 'fixed_price') return Number(val);
+        // nxm, 2x1, second_unit: precio unitario sin cambios
         return p;
     };
     const basePrice = calcBase();

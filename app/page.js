@@ -311,7 +311,9 @@ export default function Home() {
                         if (!off || !off.is_active) return Number(p).toLocaleString('es-AR');
                         const type = off.type;
                         const val = off.discount_value;
-                        if (type === 'percent' || type === 'percentage') return Math.round(Number(p) * (1 - parseFloat(val) / 100)).toLocaleString('es-AR');
+                        // Tolerante al formato viejo ('50% OFF') y nuevo ('50')
+                        const pct = parseFloat(String(val).replace(/[^0-9.]/g, '')) || 0;
+                        if (type === 'percent' || type === 'percentage') return Math.round(Number(p) * (1 - pct / 100)).toLocaleString('es-AR');
                         if (type === 'fixed') return Math.max(0, Number(p) - Number(val)).toLocaleString('es-AR');
                         if (type === 'fixed_price') return Number(val).toLocaleString('es-AR');
                         // nxm, 2x1, second_unit: el ahorro es por cantidad, el precio unitario no cambia

@@ -103,7 +103,8 @@ export default function CartModal({ isOpen, onClose }) {
         return Math.floor(qty / n) * (n - m) * unitPrice;
       }
       if (offer.type === 'second_unit') {
-        const pct = parseFloat(offer.discount_value) || 0;
+        // \u2705 Tolerante al formato viejo ('70% 2da') y nuevo ('70')
+        const pct = parseFloat(String(offer.discount_value).replace(/[^0-9.]/g, '')) || 0;
         const pairs = Math.floor(qty / 2);
         return pairs * Math.round(unitPrice * pct / 100);
       }
