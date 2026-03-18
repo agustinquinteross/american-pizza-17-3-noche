@@ -87,31 +87,31 @@ export default function CartModal({ isOpen, onClose }) {
   const getItemPromoSavings = (item) => {
     const offer = item.special_offers
     if (!offer || offer.is_active === false) return 0
-    const qty   = Math.max(0, Number(item.quantity) || 0)
-    const price = Math.max(0, Number(item.price)    || 0)
+    
+    const qty = Math.max(0, Number(item.quantity) || 0)
+    // El item.price YA TIENE el descuento de porcentaje/fijo aplicado en ProductModal
+    // pero NO tiene el descuento de 2x1 o nxm.
+    
     try {
       if (offer.type === 'nxm' || offer.type === '2x1') {
         let n = 2, m = 1; 
         if (offer.type === 'nxm') {
-           const parts = offer.discount_value.toLowerCase().split('x');
+           const parts = (offer.discount_value || '').toLowerCase().split('x');
            n = parseInt(parts[0]) || 2; m = parseInt(parts[1]) || 1;
         }
         if (n <= m || n <= 0) return 0; 
-        return Math.floor(qty / n) * (n - m) * price;
+        return Math.floor(qty / n) * (n - m) * item.price;
       }
-      if (offer.type === 'percent' || offer.type === '50off') {
-        let pct = offer.type === 'percent' ? parseInt(offer.discount_value) || 0 : 50; 
-        return Math.round(qty * price * (pct / 100) * 100) / 100;
-      }
-      if (offer.type === 'second_unit' || offer.type === '70off_2nd') {
-        let pct = offer.type === 'second_unit' ? parseInt(offer.discount_value) || 0 : 70;
-        return Math.round(Math.floor(qty / 2) * price * (pct / 100) * 100) / 100;
-      }
+      
+      // Para 'percentage' o 'fixed', el ahorro ya se aplicó al precio unitario, 
+      // pero si queremos mostrarlo en "Ahorro Promos", deberíamos calcular la diferencia vs el precio original.
+      // Sin embargo, si lo restamos de 'total' de nuevo, habrá doble descuento.
+      // Por lo tanto, promoSavings SOLO debe incluir descuentos multit-unidad que NO están en item.price.
     } catch (e) { console.error(e) }
     return 0; 
   }
 
-  const promoSavings = Math.round(cart.reduce((total, item) => total + getItemPromoSavings(item), 0) * 100) / 100
+  const multiUnitSavings = Math.round(cart.reduce((total, item) => total + getItemPromoSavings(item), 0) * 100) / 100
   const subtotal = Number(getTotal()) || 0
   
   // ✅ FIX: El descuento del cupón ahora es dinámico (se recalcula si cambia el subtotal).
@@ -122,7 +122,7 @@ export default function CartModal({ isOpen, onClose }) {
           : appliedCoupon.value;
   }
   
-  const total = Math.max(0, subtotal - discountAmount - promoSavings + deliveryCost)
+  const total = Math.max(0, subtotal - discountAmount - multiUnitSavings + deliveryCost)
 
   const handleSearchAddress = async () => {
     if (!address) return
@@ -176,7 +176,7 @@ export default function CartModal({ isOpen, onClose }) {
         total: total,
         delivery_method: deliveryType,
         payment_method: paymentMethod,
-        discount: discountAmount + promoSavings, 
+        discount: discountAmount + multiUnitSavings, 
         coupon_code: couponCode || null,
         items: cart.map(item => ({
           product_name: item.name,
@@ -243,7 +243,7 @@ export default function CartModal({ isOpen, onClose }) {
       }
 
       msg += `%0A${itemsList}%0A%0A`
-      if (promoSavings > 0) msg += `🎁 Ahorro Promos: -$${promoSavings}%0A`
+      if (multiUnitSavings > 0) msg += `🎁 Ahorro Promos: -$${multiUnitSavings}%0A`
       if (deliveryType === 'delivery') msg += `🛵 Costo Envío: $${deliveryCost}%0A`
       msg += `Total a Pagar: *$${total}*%0APago: ${paymentMethod.toUpperCase()}%0A%0A`
 
@@ -368,7 +368,7 @@ export default function CartModal({ isOpen, onClose }) {
         <div className="mt-8 pt-6 border-t border-white/10 space-y-2">
             <div className="flex justify-between text-white/40 text-[10px] font-black uppercase tracking-widest px-1"><span>Subtotal</span><span>${subtotal}</span></div>
             {deliveryType === 'delivery' && coords && <div className="flex justify-between text-white/40 text-[10px] font-black uppercase tracking-widest px-1"><span>Envío</span><span>${deliveryCost}</span></div>}
-            {promoSavings > 0 && <div className="flex justify-between text-[#E31B23] font-black text-xs uppercase italic tracking-widest px-1"><span>Ahorro Promos</span><span>-${promoSavings}</span></div>}
+            {multiUnitSavings > 0 && <div className="flex justify-between text-[#E31B23] font-black text-xs uppercase italic tracking-widest px-1"><span>Ahorro Promos</span><span>-${multiUnitSavings}</span></div>}
             {discountAmount > 0 && <div className="flex justify-between text-green-500 font-black text-xs uppercase tracking-widest px-1"><span>Descuento Cupón</span><span>-${discountAmount}</span></div>}
             <div className="flex justify-between text-2xl sm:text-4xl font-black text-white py-2 sm:py-4 italic tracking-tighter"><span>TOTAL</span><span className="text-[#E31B23]">${total}</span></div>
             

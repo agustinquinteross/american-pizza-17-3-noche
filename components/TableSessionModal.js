@@ -152,12 +152,18 @@ export default function TableSessionModal({ table, products, categories = [], on
     }
 
     const addToCart = (product, optionsText = '', extraPrice = 0, itemNote = '') => {
+        const basePrice = product.special_offers?.is_active ? 
+            (product.special_offers.type === 'percentage' ? 
+                Math.round(product.price * (1 - product.special_offers.discount_value / 100)) : 
+                product.special_offers.discount_value) 
+            : product.price;
+
         const cartItem = {
             id: Date.now(),
             product_id: product.id,
             product_name: product.name,
             quantity: 1,
-            price: product.price + extraPrice,
+            price: basePrice + extraPrice,
             options: optionsText,
             internal_notes: itemNote
         }
@@ -555,7 +561,20 @@ export default function TableSessionModal({ table, products, categories = [], on
                                                     <h4 className="font-bold text-xs sm:text-sm truncate uppercase text-white/70 leading-tight group-hover:text-white transition-colors">{product.name}</h4>
                                                     {isOutOfStock && <span className="text-[8px] font-black bg-[#E31B23] text-white px-1.5 py-0.5 rounded block shrink-0">AGOTADO</span>}
                                                 </div>
-                                                <p className="text-sm sm:text-base font-black text-[#E31B23] italic tracking-tight">${product.price}</p>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="text-sm sm:text-base font-black text-[#E31B23] italic tracking-tight">
+                                                        ${product.special_offers?.is_active ? 
+                                                            (product.special_offers.type === 'percentage' ? 
+                                                                Math.round(product.price * (1 - product.special_offers.discount_value / 100)) : 
+                                                                product.special_offers.discount_value) 
+                                                            : product.price}
+                                                    </p>
+                                                    {product.special_offers?.is_active && (
+                                                        <span className="text-[9px] font-bold bg-yellow-500 text-black px-1.5 py-0.5 rounded uppercase animate-pulse">
+                                                            {product.special_offers.title}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                             {!isOutOfStock && (
                                                 <div className="p-2 bg-white/5 rounded-xl text-[#E31B23] group-hover:bg-[#E31B23] group-hover:text-white transition-all"><Plus size={16}/></div>

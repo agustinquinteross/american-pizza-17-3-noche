@@ -81,7 +81,13 @@ export default function AdminProductOptionSelector({ product, modifierGroups, on
                 <div className="p-6 bg-[#1A1A1A] border-t border-white/10">
                     <div className="flex justify-between items-center mb-4">
                         <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Total del Producto</span>
-                        <span className="text-xl font-black text-white italic">${product.price + totalExtras}</span>
+                        <span className="text-xl font-black text-white italic">
+                            ${(product.special_offers?.is_active ? 
+                                (product.special_offers.type === 'percentage' ? 
+                                    Math.round(product.price * (1 - product.special_offers.discount_value / 100)) : 
+                                    product.special_offers.discount_value) 
+                                : product.price) + totalExtras}
+                        </span>
                     </div>
                     <button 
                         onClick={() => onConfirm(product, optionsText, totalExtras, note)}

@@ -38,6 +38,14 @@ export default function ProductModal({ product, isOpen, onClose, onAddToCart }) 
   // 2. Calcular precio unitario
   const unitPrice = useMemo(() => {
     if (!product) return 0;
+
+    // Calcular precio base con oferta
+    const basePrice = product.special_offers?.is_active ? 
+        (product.special_offers.type === 'percentage' ? 
+            Math.round(product.price * (1 - product.special_offers.discount_value / 100)) : 
+            product.special_offers.discount_value) 
+        : product.price;
+
     let extraCost = 0;
     groups.forEach(group => {
       const options = group.modifier_options || [];
@@ -49,7 +57,7 @@ export default function ProductModal({ product, isOpen, onClose, onAddToCart }) 
     });
     // ✅ FIX: Redondeamos el unitPrice ya en el useMemo para que el valor
     // guardado en el carrito también sea limpio, no solo el display.
-    return Math.round((Number(product.price) + extraCost) * 100) / 100;
+    return Math.round((Number(basePrice) + extraCost) * 100) / 100;
   }, [product, selectedOptions, groups]);
 
   if (!isOpen || !product) return null;
