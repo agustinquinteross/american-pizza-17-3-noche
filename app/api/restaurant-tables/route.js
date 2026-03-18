@@ -34,7 +34,7 @@ export async function POST(request) {
 
     const { rows } = await query(
       'INSERT INTO restaurant_tables (label, zone_id, shape, is_active) VALUES ($1, $2, $3, $4) RETURNING *',
-      [label, zone_id, shape || 'square', is_active ?? true]
+      [label, zone_id || null, shape || 'square', is_active ?? true]
     );
 
     return NextResponse.json(rows[0], { status: 201 });

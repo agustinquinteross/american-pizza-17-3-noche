@@ -26,7 +26,9 @@ export async function PUT(request) {
     for (const key of allowedFields) {
       if (data[key] !== undefined) {
         updates.push(`${key} = $${i}`);
-        values.push(data[key]);
+        // Si es un campo de precio o número y viene como "", enviamos null
+        const val = (data[key] === "" && (key.includes('price') || key.includes('km'))) ? null : data[key];
+        values.push(val);
         i++;
       }
     }

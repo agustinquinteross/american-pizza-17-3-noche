@@ -264,13 +264,20 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      if (session) loadAllData()
-      else setLoading(false)
-    })
+    // Escuchar cambios en la sesión de forma estable
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+      if (newSession) {
+        loadAllData();
+      } else {
+        setLoading(false);
+      }
+    });
 
-    if (!session) return
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []); // Sin dependencias para que solo se ejecute al montar
 
     // Setup Pusher Realtime
     let pusherObj;

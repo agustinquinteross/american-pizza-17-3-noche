@@ -33,7 +33,7 @@ export async function POST(request) {
 
     const { rows } = await query(
       'INSERT INTO coupons (code, discount_type, value, usage_limit, is_active) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [code.toUpperCase(), discount_type, value, usage_limit || null, is_active ?? true]
+      [code.toUpperCase(), discount_type, value || 0, usage_limit || null, is_active ?? true]
     );
 
     return NextResponse.json(rows[0], { status: 201 });
@@ -68,7 +68,7 @@ export async function PUT(request) {
        SET discount_type = $1, value = $2, usage_limit = $3, is_active = $4 
        WHERE code = $5 RETURNING *
     `;
-    const { rows } = await query(sql, [discount_type, value, usage_limit || null, is_active ?? true, oldCode.toUpperCase()]);
+    const { rows } = await query(sql, [discount_type, value || 0, usage_limit || null, is_active ?? true, oldCode.toUpperCase()]);
 
     if(rows.length === 0) return NextResponse.json({ error: 'Coupon not found' }, { status: 404 });
 

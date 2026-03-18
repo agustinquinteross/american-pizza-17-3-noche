@@ -21,7 +21,7 @@ export async function POST(request) {
 
     const { rows } = await query(
       'INSERT INTO waiters (name, pin_code) VALUES ($1, $2) RETURNING *',
-      [name, pin_code]
+      [name || null, pin_code || null]
     );
 
     return NextResponse.json(rows[0], { status: 201 });
