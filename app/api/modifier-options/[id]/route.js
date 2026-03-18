@@ -3,7 +3,7 @@ import { query, handleError } from '@/lib/db';
 
 export async function DELETE(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const { rowCount } = await query('DELETE FROM modifier_options WHERE id = $1', [id]);
 
     if (rowCount === 0) {
@@ -17,7 +17,7 @@ export async function DELETE(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const data = await request.json();
     const { name, price, is_available } = data;
 

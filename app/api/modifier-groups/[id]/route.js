@@ -3,7 +3,7 @@ import { query, handleError } from '@/lib/db';
 
 export async function DELETE(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     // Al eliminar un grupo de modificadores, primero hay que limpiar product_modifiers asociados por diseño.
     // También eliminar las opciones, pero dependerá de las restricciones de clave foránea.
@@ -25,7 +25,7 @@ export async function DELETE(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const data = await request.json();
     const { name, min_selection, max_selection, is_active } = data;
 

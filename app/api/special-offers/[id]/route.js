@@ -3,7 +3,7 @@ import { query, handleError } from '@/lib/db';
 
 export async function DELETE(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // First remove offer_id from products
     await query('UPDATE products SET offer_id = NULL WHERE offer_id = $1', [id]);
@@ -22,9 +22,9 @@ export async function DELETE(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const data = await request.json();
-    const { title, description, discount_type, discount_value, valid_from, valid_until, is_active } = data;
+    const { title, description, type, discount_value, is_active } = data;
 
     const updates = [];
     const values = [];
@@ -32,10 +32,8 @@ export async function PUT(request, { params }) {
 
     if (title !== undefined) { updates.push(`title = $${i}`); values.push(title); i++; }
     if (description !== undefined) { updates.push(`description = $${i}`); values.push(description); i++; }
-    if (discount_type !== undefined) { updates.push(`discount_type = $${i}`); values.push(discount_type); i++; }
+    if (type !== undefined) { updates.push(`type = $${i}`); values.push(type); i++; }
     if (discount_value !== undefined) { updates.push(`discount_value = $${i}`); values.push(discount_value); i++; }
-    if (valid_from !== undefined) { updates.push(`valid_from = $${i}`); values.push(valid_from); i++; }
-    if (valid_until !== undefined) { updates.push(`valid_until = $${i}`); values.push(valid_until); i++; }
     if (is_active !== undefined) { updates.push(`is_active = $${i}`); values.push(is_active); i++; }
 
     if (updates.length === 0) {

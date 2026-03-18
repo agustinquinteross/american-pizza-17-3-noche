@@ -3,7 +3,7 @@ import { query, handleError } from '@/lib/db';
 
 export async function DELETE(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const { rowCount } = await query('DELETE FROM restaurant_zones WHERE id = $1', [id]);
 
@@ -22,7 +22,7 @@ export async function DELETE(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const data = await request.json();
     const { name } = data;
 

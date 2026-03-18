@@ -3,7 +3,7 @@ import { query, handleError } from '@/lib/db';
 
 export async function GET(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const { rows } = await query(`
         SELECT ts.*, w.name as "waiters(name)" 
         FROM table_sessions ts 
@@ -26,7 +26,7 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const data = await request.json();
     const { total, subtotal, discount, status, closed_at, payment_method } = data;
 

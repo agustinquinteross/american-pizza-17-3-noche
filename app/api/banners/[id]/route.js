@@ -3,7 +3,7 @@ import { query, handleError } from '@/lib/db';
 
 export async function DELETE(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const { rowCount } = await query('DELETE FROM banners WHERE id = $1', [id]);
 
@@ -19,7 +19,7 @@ export async function DELETE(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const data = await request.json();
     const { is_active } = data;
 

@@ -3,7 +3,7 @@ import { query, handleError, pool } from '@/lib/db';
 
 export async function PUT(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     // Solo manejaremos actualización de estado por ahora
     const data = await request.json();
@@ -38,7 +38,7 @@ export async function PUT(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const client = await pool.connect();
     
