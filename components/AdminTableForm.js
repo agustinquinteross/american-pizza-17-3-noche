@@ -29,11 +29,11 @@ export default function AdminTableForm({ tableToEdit, zoneId, onClose, onRefresh
                 onClose()
             } else {
                 const err = await res.json();
-                alert('Error al guardar mesa: ' + (err.error || 'Unknown error'));
+                alert('Error al guardar mesa (R): ' + (err.error || JSON.stringify(err) || 'Unknown error'));
             }
         } catch(e) {
             console.error(e);
-            alert('Error al guardar mesa');
+            alert('Error al guardar mesa (C): ' + e.message);
         }
         setLoading(false)
     }
