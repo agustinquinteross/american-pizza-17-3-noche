@@ -1,0 +1,75 @@
+
+> american-burger@0.1.0 lint
+> eslint
+
+
+C:\american-burger\app\admin\ProductExtrasSelector.js
+  28:5  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  26 |
+  27 |   useEffect(() => {
+> 28 |     loadData();
+     |     ^^^^^^^^ Avoid calling setState() directly within an effect
+  29 |   }, [productId]);
+  30 |
+  31 |   const toggleGroup = async (groupId) => {  react-hooks/set-state-in-effect
+  29:6  warning  React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            react-hooks/exhaustive-deps
+
+C:\american-burger\app\admin\page.js
+   16:27   warning  'RefreshCw' is defined but never used                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+   17:47   warning  'X' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+   19:3    warning  'MessageCircle' is defined but never used                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+   19:38   warning  'AlertCircle' is defined but never used                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+  156:19   warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  164:6    warning  React Hook useEffect has a missing dependency: 'loadAllData'. Either include it or remove the dependency array                                                                                                                                                                           react-hooks/exhaustive-deps
+  420:48   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  473:270  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\american-burger\app\layout.tsx
+  1:15  warning  'Metadata' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\american-burger\app\page.js
+  136:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  222:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\american-burger\app\pedido\[id]\page.js
+  59:19  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\american-burger\components\AdminBannerForm.js
+  88:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\american-burger\components\AdminProductForm.js
+    4:53  warning  'ImageIcon' is defined but never used                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+    4:75  warning  'Plus' is defined but never used                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  122:41  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\american-burger\components\CartModal.js
+  5:53  warning  'Ticket' is defined but never used  @typescript-eslint/no-unused-vars
+  5:88  warning  'Wallet' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\american-burger\components\ProductModal.js
+   35:9   warning  The 'groups' logical expression could make the dependencies of useMemo Hook (at line 52) change on every render. To fix this, wrap the initialization of 'groups' in its own useMemo() Hook                                                                                              react-hooks/exhaustive-deps
+  134:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\american-burger\components\PromoCarousel.js
+  107:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\american-burger\components\metrics\DashboardMetrics.js
+    2:38  warning  'useRef' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+    8:3   warning  'Loader2' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+    9:3   warning  'Award' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+    9:39  warning  'List' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+   10:20  warning  'ChevronUp' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+   10:31  warning  'ChevronDown' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+   10:44  warning  'Minus' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+  111:40  warning  React Hook useEffect has a missing dependency: 'fetchMetrics'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  125:16  warning  '_' is defined but never used                                                                                    @typescript-eslint/no-unused-vars
+
+✖ 32 problems (1 error, 31 warnings)
+

@@ -1,0 +1,263 @@
+
+> american-burger@0.1.0 lint
+> eslint
+
+
+C:\american-burger\app\admin\ProductExtrasSelector.js
+  10:5  error    Error: Cannot access variable before it is declared
+
+`loadData` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+   8 |
+   9 |   useEffect(() => {
+> 10 |     loadData();
+     |     ^^^^^^^^ `loadData` accessed before it is declared
+  11 |   }, [productId]);
+  12 |
+  13 |   async function loadData() {
+
+  11 |   }, [productId]);
+  12 |
+> 13 |   async function loadData() {
+     |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 14 |     // 1. Cargar TODOS los grupos disponibles (Punto carne, Salsas, etc)
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 15 |     const { data: groups } = await supabase.from('modifier_groups').select('*');
+     …
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 28 |     }
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 29 |   }
+     | ^^^^ `loadData` is declared here
+  30 |
+  31 |   const toggleGroup = async (groupId) => {
+  32 |     const isSelected = activeGroupIds.includes(groupId);  react-hooks/immutability
+  11:6  warning  React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              react-hooks/exhaustive-deps
+
+C:\american-burger\app\admin\page.js
+   16:27   warning  'RefreshCw' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+   17:47   warning  'X' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+   19:3    warning  'MessageCircle' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+   19:38   warning  'AlertCircle' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   85:20   error    Error: Cannot access variable before it is declared
+
+`loadAllData` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  83 |     supabase.auth.getSession().then(({ data: { session } }) => {
+  84 |       setSession(session)
+> 85 |       if (session) loadAllData()
+     |                    ^^^^^^^^^^^ `loadAllData` accessed before it is declared
+  86 |       else setLoading(false)
+  87 |     })
+  88 |
+
+  104 |   }, [])
+  105 |
+> 106 |   const loadAllData = async () => {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 107 |     setLoading(true)
+      | ^^^^^^^^^^^^^^^^^^^^
+> 108 |     try {
+      | ^^^^^^^^^^^^^^^^^^^^
+> 109 |         await Promise.all([
+      | ^^^^^^^^^^^^^^^^^^^^
+> 110 |             fetchStoreConfig(), fetchCategories(), fetchModifiers(),
+      | ^^^^^^^^^^^^^^^^^^^^
+> 111 |             fetchProducts(), fetchOrders(), fetchCoupons(), fetchBanners(), fetchOffers()
+      | ^^^^^^^^^^^^^^^^^^^^
+> 112 |         ])
+      | ^^^^^^^^^^^^^^^^^^^^
+> 113 |     } catch (error) { console.error("Error cargando datos:", error) }
+      | ^^^^^^^^^^^^^^^^^^^^
+> 114 |     setLoading(false)
+      | ^^^^^^^^^^^^^^^^^^^^
+> 115 |   }
+      | ^^^^ `loadAllData` is declared here
+  116 |
+  117 |   // --- ACTUALIZADO: Trae todo de store_config ---
+  118 |   const fetchStoreConfig = async () => {                                                                                                                                                                                                                                    react-hooks/immutability
+   96:19   warning  'e' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+   98:11   error    Error: Cannot access variable before it is declared
+
+`fetchOrders` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+   96 |           } catch(e) {}
+   97 |           alert('🔔 ¡NUEVO PEDIDO! ' + payload.new.customer_name)
+>  98 |           fetchOrders()
+      |           ^^^^^^^^^^^ `fetchOrders` accessed before it is declared
+   99 |         }
+  100 |       )
+  101 |       .subscribe()
+
+  151 |   // --- FETCHS ---
+  152 |   const fetchProducts = async () => { const { data } = await supabase.from('products').select('*, categories(name), special_offers(id, title, type, discount_value, is_active)').order('id'); setProducts(data || []) }
+> 153 |   const fetchOrders = async () => { const { data } = await supabase.from('orders').select('*, order_items(*)').order('created_at', { ascending: false }); setOrders(data || []) }
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `fetchOrders` is declared here
+  154 |   const fetchCategories = async () => { const { data } = await supabase.from('categories').select('*').order('id'); setCategories(data || []) }
+  155 |   const fetchModifiers = async () => { const { data } = await supabase.from('modifier_groups').select('*').order('id'); setModifierGroups(data || []) }
+  156 |   const fetchCoupons = async () => { const { data } = await supabase.from('coupons').select('*').order('created_at', { ascending: false }); setCoupons(data || []) }  react-hooks/immutability
+  104:6    warning  React Hook useEffect has a missing dependency: 'loadAllData'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    react-hooks/exhaustive-deps
+  415:48   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @next/next/no-img-element
+  468:270  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @next/next/no-img-element
+
+C:\american-burger\app\layout.tsx
+  1:15  warning  'Metadata' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\american-burger\app\page.js
+   38:28  error    Error: Cannot access variable before it is declared
+
+`fetchStoreConfig` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  36 |   useEffect(() => {
+  37 |     async function init() {
+> 38 |         await Promise.all([fetchStoreConfig(), fetchData()])
+     |                            ^^^^^^^^^^^^^^^^ `fetchStoreConfig` accessed before it is declared
+  39 |         setLoading(false)
+  40 |     }
+  41 |     init()
+
+  43 |
+  44 |   // 1. Chequear si la tienda está abierta
+> 45 |   const fetchStoreConfig = async () => {
+     |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 46 |       const { data } = await supabase.from('store_config').select('is_open').eq('id', 1).single()
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 47 |       if (data) setIsStoreOpen(data.is_open)
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 48 |       setCheckingStore(false)
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 49 |   }
+     | ^^^^ `fetchStoreConfig` is declared here
+  50 |
+  51 |   // 2. Cargar Productos y Categorías
+  52 |   const fetchData = async () => {  react-hooks/immutability
+   38:48  error    Error: Cannot access variable before it is declared
+
+`fetchData` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  36 |   useEffect(() => {
+  37 |     async function init() {
+> 38 |         await Promise.all([fetchStoreConfig(), fetchData()])
+     |                                                ^^^^^^^^^ `fetchData` accessed before it is declared
+  39 |         setLoading(false)
+  40 |     }
+  41 |     init()
+
+  50 |
+  51 |   // 2. Cargar Productos y Categorías
+> 52 |   const fetchData = async () => {
+     |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 53 |     try {
+     | ^^^^^^^^^
+> 54 |       // Categorías
+     …
+     | ^^^^^^^^^
+> 86 |     }
+     | ^^^^^^^^^
+> 87 |   }
+     | ^^^^ `fetchData` is declared here
+  88 |
+  89 |   // --- FILTROS ---
+  90 |   const filteredProducts = products.filter(p => {                                                                                                                                                                                                                                                                                                                                                                                                                                        react-hooks/immutability
+  136:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @next/next/no-img-element
+  222:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @next/next/no-img-element
+
+C:\american-burger\app\pedido\[id]\page.js
+  59:19  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\american-burger\components\AdminBannerForm.js
+  88:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\american-burger\components\AdminProductForm.js
+    4:53  warning  'ImageIcon' is defined but never used                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+    4:75  warning  'Plus' is defined but never used                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  122:41  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\american-burger\components\CartModal.js
+   5:53  warning  'Ticket' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   5:88  warning  'Wallet' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+  68:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  66 |     if (coords && deliveryType === 'delivery') {
+  67 |       const dist = calculateDistanceKM(RESTAURANT_COORDS.lat, RESTAURANT_COORDS.lng, coords.lat, coords.lng)
+> 68 |       setDistanceKm(dist)
+     |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  69 |       
+  70 |       if (dist <= config.delivery_free_base_km) {
+  71 |         setDeliveryCost(config.delivery_base_price)  react-hooks/set-state-in-effect
+
+C:\american-burger\components\MapPicker.js
+  47:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  45 |   useEffect(() => {
+  46 |     if (forcedCoords) {
+> 47 |       setPosition(forcedCoords)
+     |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  48 |       setLocation(forcedCoords) // Sincronizamos
+  49 |     }
+  50 |   }, [forcedCoords, setLocation])  react-hooks/set-state-in-effect
+
+C:\american-burger\components\ProductModal.js
+   28:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  26 |   useEffect(() => {
+  27 |     if (isOpen) {
+> 28 |       setSelectedOptions({});
+     |       ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  29 |       setQty(1);
+  30 |       setNote('');
+  31 |     }  react-hooks/set-state-in-effect
+   34:9   warning  The 'groups' logical expression could make the dependencies of useMemo Hook (at line 51) change on every render. To fix this, wrap the initialization of 'groups' in its own useMemo() Hook                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    react-hooks/exhaustive-deps
+  133:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @next/next/no-img-element
+
+C:\american-burger\components\PromoCarousel.js
+  107:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\american-burger\components\metrics\DashboardMetrics.js
+    2:38  warning  'useRef' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+    8:3   warning  'Loader2' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+    9:3   warning  'Award' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+    9:39  warning  'List' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+   10:20  warning  'ChevronUp' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+   10:31  warning  'ChevronDown' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+   10:44  warning  'Minus' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+  111:40  warning  React Hook useEffect has a missing dependency: 'fetchMetrics'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  125:16  warning  '_' is defined but never used                                                                                    @typescript-eslint/no-unused-vars
+
+C:\american-burger\store\useCart.js
+  46:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  44 |     if (saved) {
+  45 |       try {
+> 46 |         setCart(JSON.parse(saved))
+     |         ^^^^^^^ Avoid calling setState() directly within an effect
+  47 |       } catch {
+  48 |         // ✅ FIX: Si el JSON guardado está corrupto, lo descartamos en lugar de romper la app
+  49 |         safeLocalStorage.remove('cart')  react-hooks/set-state-in-effect
+
+✖ 40 problems (9 errors, 31 warnings)
+
