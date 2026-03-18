@@ -128,7 +128,8 @@ export default function Home() {
   // --- FILTROS Y ORDENAMIENTO ESTELAR ---
   const filteredProducts = products
     .filter(p => {
-      const matchesCategory = activeCategory === 'Todos' || p.categories?.name === activeCategory
+      // ✅ FIX: La API con withExtras=true devuelve `category: { name }`, no `categories`.
+      const matchesCategory = activeCategory === 'Todos' || p.category?.name === activeCategory
       const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase())
       return matchesCategory && matchesSearch
     })
@@ -303,11 +304,19 @@ export default function Home() {
                       <div className="w-full h-full flex items-center justify-center text-4xl">🍕</div>
                     )}
                     <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-white px-3 py-1 rounded-xl font-black border border-white/10 text-xs sm:text-lg italic tracking-tighter shadow-2xl z-20">
-                      ${product.special_offers?.is_active ? 
-                        (product.special_offers.type === 'percentage' ? 
-                            Math.round(product.price * (1 - product.special_offers.discount_value / 100)) : 
-                            product.special_offers.discount_value) 
-                        : product.price}
+                      {/* ✅ FIX: Calcular el precio mostrado correctamente para cada tipo de oferta */}
+                      ${(() => {
+                        const p = product.price;
+                        const off = product.special_offers;
+                        if (!off || !off.is_active) return Number(p).toLocaleString('es-AR');
+                        const type = off.type;
+                        const val = off.discount_value;
+                        if (type === 'percent' || type === 'percentage') return Math.round(Number(p) * (1 - parseFloat(val) / 100)).toLocaleString('es-AR');
+                        if (type === 'fixed') return Math.max(0, Number(p) - Number(val)).toLocaleString('es-AR');
+                        if (type === 'fixed_price') return Number(val).toLocaleString('es-AR');
+                        // nxm, 2x1, second_unit: el ahorro es por cantidad, el precio unitario no cambia
+                        return Number(p).toLocaleString('es-AR');
+                      })()}
                     </div>
                   </div>
                   <div className="pl-4 pr-2 pb-2">

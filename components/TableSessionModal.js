@@ -151,11 +151,12 @@ export default function TableSessionModal({ table, products, categories = [], on
         } catch(e) { console.error(e); setLoading(false); }
     }
 
-    // Calcula el precio base para descuentos de unidad simple (percentage, fixed, fixed_price)
+    // Calcula el precio base para descuentos de unidad simple (percentage/percent, fixed, fixed_price)
     // NxM y second_unit se calculan a nivel de carrito completo, no por unidad
     const calcBasePrice = (product) => {
         if (!product.special_offers?.is_active) return Number(product.price);
         const offer = product.special_offers;
+        // ✅ FIX: manejar 'percent' Y 'percentage' (ambos se usan en la BD)
         if (offer.type === 'percent' || offer.type === 'percentage') {
             const pct = parseFloat(offer.discount_value) || 0;
             return Math.round(Number(product.price) * (1 - pct / 100));
@@ -168,20 +169,21 @@ export default function TableSessionModal({ table, products, categories = [], on
         return Number(product.price);
     };
 
-    // Calcula el ahorro por promos NxM y second_unit del carrito completo
+    // Calcula el ahorro por promos NxM y second_unit del carrito completo.
+    // ✅ FIX: Ahora suma item.quantity en lugar de contar items.length.
+    // Antes: si el mozo añadía 1 ítem con quantity=3, items.length=1 y no detectaba la promo.
+    // Ahora: suma la cantidad real de cada línea, independiente de cómo estén agrupadas.
     const getCartPromoSavings = (cartItems) => {
         let savings = 0;
         // Agrupar por product_id para detectar multi-unidad
         const byProduct = {};
         cartItems.forEach(item => {
-            if (!byProduct[item.product_id]) byProduct[item.product_id] = [];
-            byProduct[item.product_id].push(item);
+            const pid = item.product_id;
+            if (!byProduct[pid]) byProduct[pid] = { offer: item.offer, qty: 0, unitPrice: Number(item.unit_price || item.price) };
+            byProduct[pid].qty += Number(item.quantity) || 1; // ✅ usar quantity real
         });
-        Object.values(byProduct).forEach(items => {
-            const offer = items[0]?.offer;
+        Object.values(byProduct).forEach(({ offer, qty, unitPrice }) => {
             if (!offer || !offer.is_active) return;
-            const qty = items.length;
-            const unitPrice = Number(items[0].unit_price || items[0].price);
             if (offer.type === 'nxm' || offer.type === '2x1') {
                 let n = 2, m = 1;
                 if (offer.type === 'nxm') {

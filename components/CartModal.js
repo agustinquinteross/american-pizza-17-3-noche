@@ -20,7 +20,8 @@ function calculateDistanceKM(lat1, lon1, lat2, lon2) {
 
 export default function CartModal({ isOpen, onClose }) {
   const { cart, getTotal, clearCart, removeFromCart } = useCart()
-  
+  const fmt = (n) => `$${Math.round(Number(n)).toLocaleString('es-AR')}`
+
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [deliveryType, setDeliveryType] = useState('delivery')
@@ -89,8 +90,7 @@ export default function CartModal({ isOpen, onClose }) {
     if (!offer || offer.is_active === false) return 0
     
     const qty = Math.max(0, Number(item.quantity) || 0)
-    // El item.price YA TIENE el descuento de porcentaje/fijo aplicado en ProductModal
-    // pero NO tiene el descuento de 2x1 o nxm.
+    const unitPrice = Number(item.price) || 0
     
     try {
       if (offer.type === 'nxm' || offer.type === '2x1') {
@@ -100,13 +100,13 @@ export default function CartModal({ isOpen, onClose }) {
            n = parseInt(parts[0]) || 2; m = parseInt(parts[1]) || 1;
         }
         if (n <= m || n <= 0) return 0; 
-        return Math.floor(qty / n) * (n - m) * item.price;
+        return Math.floor(qty / n) * (n - m) * unitPrice;
       }
-      
-      // Para 'percentage' o 'fixed', el ahorro ya se aplicó al precio unitario, 
-      // pero si queremos mostrarlo en "Ahorro Promos", deberíamos calcular la diferencia vs el precio original.
-      // Sin embargo, si lo restamos de 'total' de nuevo, habrá doble descuento.
-      // Por lo tanto, promoSavings SOLO debe incluir descuentos multit-unidad que NO están en item.price.
+      if (offer.type === 'second_unit') {
+        const pct = parseFloat(offer.discount_value) || 0;
+        const pairs = Math.floor(qty / 2);
+        return pairs * Math.round(unitPrice * pct / 100);
+      }
     } catch (e) { console.error(e) }
     return 0; 
   }
@@ -279,29 +279,48 @@ export default function CartModal({ isOpen, onClose }) {
             <p className="text-center text-white/30 py-4 font-bold uppercase text-[10px] tracking-widest">Carrito vacío</p>
           ) : cart.map((item, index) => {
             const itemSavings = getItemPromoSavings(item)
-            const hasPromo = item.special_offers && item.special_offers.is_active !== false
+            const offer = item.special_offers
+            // ✅ FIX: hasPromo solo activa el estilo amarillo/tachado cuando hay un ahorro
+            // real por multi-unidad (nxm/2x1/second_unit). Para percent/fixed/fixed_price
+            // el precio ya viene descontado desde ProductModal, no debe aparecer tachado.
+            const isMultiUnitPromo = offer && offer.is_active !== false && ['nxm', '2x1', 'second_unit'].includes(offer.type)
+            const hasSingleUnitDiscount = offer && offer.is_active !== false && ['percent', 'percentage', 'fixed', 'fixed_price'].includes(offer.type)
+            const hasPromo = isMultiUnitPromo && itemSavings > 0
             return (
-              <div key={index} className={`flex justify-between items-start p-3 rounded-xl border transition-all ${hasPromo ? 'bg-yellow-900/10 border-yellow-800/50' : 'bg-white/5 border-white/10 hover:bg-white/[0.07]'}`}>
+              <div key={index} className={`flex justify-between items-start p-3 rounded-xl border transition-all ${hasPromo ? 'bg-yellow-900/10 border-yellow-800/50' : hasSingleUnitDiscount ? 'bg-green-900/10 border-green-800/30' : 'bg-white/5 border-white/10 hover:bg-white/[0.07]'}`}>
                 <div className="flex gap-3 flex-1 min-w-0">
                   <div className="text-red-500 font-bold mt-0.5 shrink-0">{item.quantity}x</div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-bold text-white leading-tight">{item.name}</p>
-                      {hasPromo && (
+                      {/* Multi-unit promo badge (NxM, 2x1, segunda unidad) */}
+                      {isMultiUnitPromo && (
                         <span className="flex items-center gap-1 text-[9px] font-black text-yellow-400 bg-yellow-900/30 border border-yellow-800/50 px-1.5 py-0.5 rounded-full uppercase tracking-wide">
-                          <Gift size={9} className="shrink-0"/> {item.special_offers.discount_value}
+                          <Gift size={9} className="shrink-0"/> {offer.discount_value}
+                        </span>
+                      )}
+                      {/* Single-unit promo badge (porcentaje, precio fijo) */}
+                      {hasSingleUnitDiscount && (
+                        <span className="flex items-center gap-1 text-[9px] font-black text-green-400 bg-green-900/30 border border-green-800/50 px-1.5 py-0.5 rounded-full uppercase tracking-wide">
+                          <Gift size={9} className="shrink-0"/> PROMO
                         </span>
                       )}
                     </div>
                     {item.selectedOptions?.length > 0 && <p className="text-xs text-white/50 mt-0.5">+ {getOptionsString(item)}</p>}
                     {item.note && <p className="text-[10px] text-yellow-500 italic mt-1 bg-yellow-900/10 px-2 py-0.5 rounded border border-yellow-900/30">📝 {item.note}</p>}
                     <div className="flex items-center gap-2 mt-1">
-                      <p className={`font-bold text-sm ${hasPromo ? 'line-through text-white/40' : 'text-white/60'}`}>${Math.round(item.price * item.quantity).toLocaleString('es-AR')}</p>
-                      {itemSavings > 0 && (
-                        <p className="text-yellow-400 font-black text-sm">
-                          ${Math.round((item.price * item.quantity) - itemSavings).toLocaleString('es-AR')}
-                          <span className="text-[9px] text-yellow-600 ml-1">(-${Math.round(itemSavings).toLocaleString('es-AR')})</span>
-                        </p>
+                      {/* Para multi-unit con ahorro real: precio tachado + precio con descuento */}
+                      {hasPromo ? (
+                        <>
+                          <p className="font-bold text-sm line-through text-white/40">{fmt(Number(item.price) * Number(item.quantity))}</p>
+                          <p className="text-yellow-400 font-black text-sm">
+                            {fmt((Number(item.price) * Number(item.quantity)) - itemSavings)}
+                            <span className="text-[9px] text-yellow-600 ml-1">(-{fmt(itemSavings)})</span>
+                          </p>
+                        </>
+                      ) : (
+                        // Para precio ya descontado o sin promo: mostrar directo sin tachar
+                        <p className="font-bold text-sm text-white/70">{fmt(Number(item.price) * Number(item.quantity))}</p>
                       )}
                     </div>
                   </div>
@@ -366,11 +385,11 @@ export default function CartModal({ isOpen, onClose }) {
 
         {/* RESUMEN DE TOTALES */}
         <div className="mt-8 pt-6 border-t border-white/10 space-y-2">
-            <div className="flex justify-between text-white/40 text-[10px] font-black uppercase tracking-widest px-1"><span>Subtotal</span><span>${subtotal}</span></div>
-            {deliveryType === 'delivery' && coords && <div className="flex justify-between text-white/40 text-[10px] font-black uppercase tracking-widest px-1"><span>Envío</span><span>${deliveryCost}</span></div>}
-            {multiUnitSavings > 0 && <div className="flex justify-between text-[#E31B23] font-black text-xs uppercase italic tracking-widest px-1"><span>Ahorro Promos</span><span>-${multiUnitSavings}</span></div>}
-            {discountAmount > 0 && <div className="flex justify-between text-green-500 font-black text-xs uppercase tracking-widest px-1"><span>Descuento Cupón</span><span>-${discountAmount}</span></div>}
-            <div className="flex justify-between text-2xl sm:text-4xl font-black text-white py-2 sm:py-4 italic tracking-tighter"><span>TOTAL</span><span className="text-[#E31B23]">${total}</span></div>
+            <div className="flex justify-between text-white/40 text-[10px] font-black uppercase tracking-widest px-1"><span>Subtotal</span><span>{fmt(subtotal)}</span></div>
+            {deliveryType === 'delivery' && coords && <div className="flex justify-between text-white/40 text-[10px] font-black uppercase tracking-widest px-1"><span>Envío</span><span>{fmt(deliveryCost)}</span></div>}
+            {multiUnitSavings > 0 && <div className="flex justify-between text-[#E31B23] font-black text-xs uppercase italic tracking-widest px-1"><span>Ahorro Promos</span><span>-{fmt(multiUnitSavings)}</span></div>}
+            {discountAmount > 0 && <div className="flex justify-between text-green-500 font-black text-xs uppercase tracking-widest px-1"><span>Descuento Cupón</span><span>-{fmt(discountAmount)}</span></div>}
+            <div className="flex justify-between text-2xl sm:text-4xl font-black text-white py-2 sm:py-4 italic tracking-tighter"><span>TOTAL</span><span className="text-[#E31B23]">{fmt(total)}</span></div>
             
             <div className="space-y-4 pt-2">
                 <button onClick={() => alert("MP En mantenimiento")} disabled={loading || cart.length === 0} className="w-full bg-blue-600/20 text-blue-400 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] flex justify-center items-center gap-3 border border-blue-500/20 hover:bg-blue-600/30 transition-all opacity-50 cursor-not-allowed">

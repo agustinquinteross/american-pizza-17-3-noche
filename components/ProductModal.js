@@ -40,11 +40,21 @@ export default function ProductModal({ product, isOpen, onClose, onAddToCart }) 
     if (!product) return 0;
 
     // Calcular precio base con oferta
-    const basePrice = product.special_offers?.is_active ? 
-        (product.special_offers.type === 'percentage' ? 
-            Math.round(product.price * (1 - product.special_offers.discount_value / 100)) : 
-            product.special_offers.discount_value) 
-        : product.price;
+    const rawPrice = Number(product.price);
+    const offer = product.special_offers;
+    let basePrice = rawPrice;
+
+    if (offer?.is_active) {
+      if (offer.type === 'percent' || offer.type === 'percentage') {
+        const pct = parseFloat(offer.discount_value) || 0;
+        basePrice = Math.round(rawPrice * (1 - pct / 100));
+      } else if (offer.type === 'fixed') {
+        basePrice = Math.max(0, rawPrice - Number(offer.discount_value));
+      } else if (offer.type === 'fixed_price') {
+        basePrice = Number(offer.discount_value);
+      }
+      // nxm, 2x1, second_unit: el descuento es multi-unidad, el precio base no cambia
+    }
 
     let extraCost = 0;
     groups.forEach(group => {
@@ -55,9 +65,7 @@ export default function ProductModal({ product, isOpen, onClose, onAddToCart }) 
         }
       });
     });
-    // ✅ FIX: Redondeamos el unitPrice ya en el useMemo para que el valor
-    // guardado en el carrito también sea limpio, no solo el display.
-    return Math.round((Number(basePrice) + extraCost) * 100) / 100;
+    return Math.round((basePrice + extraCost) * 100) / 100;
   }, [product, selectedOptions, groups]);
 
   if (!isOpen || !product) return null;
