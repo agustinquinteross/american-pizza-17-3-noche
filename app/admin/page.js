@@ -264,26 +264,10 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    // Escuchar cambios en la sesión de forma estable
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
-      if (newSession) {
-        loadAllData();
-      } else {
-        setLoading(false);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []); // Sin dependencias para que solo se ejecute al montar
-
-    // Setup Pusher Realtime
     let pusherObj;
     let orderChannel;
     let tableChannel;
-    
+
     const setupPusher = async () => {
       const { pusherClient } = await import('@/lib/pusher');
       pusherObj = pusherClient;
@@ -317,17 +301,27 @@ export default function AdminPage() {
       });
     };
 
-    setupPusher();
+    // Escuchar cambios en la sesión
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+      if (newSession) {
+        loadAllData();
+        setupPusher();
+      } else {
+        setLoading(false);
+      }
+    });
 
-    return () => { 
-       if (orderChannel) orderChannel.unbind_all();
-       if (tableChannel) tableChannel.unbind_all();
-       if (pusherObj) {
-         pusherObj.unsubscribe('orders');
-         pusherObj.unsubscribe('tables');
-       }
-    }
-  }, [session])
+    return () => {
+      subscription.unsubscribe();
+      if (orderChannel) orderChannel.unbind_all();
+      if (tableChannel) tableChannel.unbind_all();
+      if (pusherObj) {
+        pusherObj.unsubscribe('orders');
+        pusherObj.unsubscribe('tables');
+      }
+    };
+  }, []); // Hook estable sin dependencias que causen bucles
 
   const printOrder = (order) => {
     const iframe = document.createElement('iframe');
