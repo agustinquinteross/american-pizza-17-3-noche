@@ -163,8 +163,22 @@ export default function AdminPage() {
   }
   const saveConfig = async () => {
       setSavingConfig(true)
-      if (error) alert('Error al guardar: ' + error.message)
-      else alert('✅ Configuración guardada correctamente')
+      try {
+          const res = await fetch('/api/store-config', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(storeConfig)
+          });
+          if (res.ok) {
+              alert('✅ Configuración guardada correctamente');
+          } else {
+              const err = await res.json();
+              alert('Error al guardar: ' + (err.error || 'Server error'));
+          }
+      } catch(e) {
+          console.error(e);
+          alert('Error al guardar configuración');
+      }
       setSavingConfig(false)
   }
 
