@@ -164,10 +164,22 @@ export default function AdminPage() {
   const saveConfig = async () => {
       setSavingConfig(true)
       try {
+          // ✅ FIX: Enviamos solo los campos permitidos como valores primitivos simples
+          // para evitar 'Value is not JSON serializable' al mandar el objeto raw de la BD
+          // que puede contener tipos especiales de PostgreSQL (BigInt, Date, etc.)
+          const payload = {
+              whatsapp_number: storeConfig.whatsapp_number || '',
+              delivery_base_price: Number(storeConfig.delivery_base_price) || 0,
+              delivery_free_base_km: Number(storeConfig.delivery_free_base_km) || 0,
+              delivery_price_per_extra_km: Number(storeConfig.delivery_price_per_extra_km) || 0,
+              logo_url: storeConfig.logo_url || null,
+              hero_bg_url: storeConfig.hero_bg_url || null,
+              use_hero_bg: Boolean(storeConfig.use_hero_bg),
+          };
           const res = await fetch('/api/store-config', {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(storeConfig)
+              body: JSON.stringify(payload)
           });
           if (res.ok) {
               alert('✅ Configuración guardada correctamente');
@@ -584,7 +596,8 @@ export default function AdminPage() {
 
   const filteredProducts = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'Todas' || p.categories?.name === selectedCategory;
+    // ✅ FIX: La API con withExtras=true devuelve `category: { name }`, no `categories`
+    const matchesCategory = selectedCategory === 'Todas' || p.category?.name === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
