@@ -250,6 +250,12 @@ export default function AdminPage() {
       if (res.ok) setZones(await res.json());
     } catch(e) { console.error(e) }
   }
+  const fetchTables = async () => { 
+    try {
+      const res = await fetch('/api/restaurant-tables');
+      if (res.ok) setTables(await res.json());
+    } catch(e) { console.error(e) }
+  }
   const fetchGroupOptions = async (groupId) => { 
     try {
       const res = await fetch(`/api/modifier-options?group_id=${groupId}`);
