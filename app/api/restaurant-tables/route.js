@@ -26,6 +26,7 @@ export async function GET() {
 export async function POST(request) {
   try {
     const data = await request.json();
+    console.log('[API] POST restaurant-tables data:', data);
     const { label, zone_id, shape, is_active } = data;
 
     if (!label || !zone_id) {
