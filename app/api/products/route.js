@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query, handleError } from '@/lib/db';
+import { query, handleError, pool } from '@/lib/db';
 
 export async function GET(request) {
   try {
@@ -131,8 +131,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Name and price are required' }, { status: 400 });
     }
 
-    // Usaremos una transacción para asegurar que el producto y sus modificadores se guarden todos o ninguno
-    const { pool } = await import('@/lib/db');
+    // Usaremos el pool estático
     // Si lib/db exporta 'query' pero necesitamos cliente para transacciones, usamos pool
     
     // Aquí simplificaremos: si falla pm.insert, igual retornamos error

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query, handleError } from '@/lib/db';
+import { query, handleError, pool } from '@/lib/db';
 
 export async function GET(request) {
   try {
@@ -77,7 +77,6 @@ export async function POST(request) {
     }
 
     // Transacción manual
-    const { pool } = await import('@/lib/db');
     const client = await pool.connect();
     
     try {

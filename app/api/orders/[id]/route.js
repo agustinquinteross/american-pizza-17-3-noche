@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query, handleError } from '@/lib/db';
+import { query, handleError, pool } from '@/lib/db';
 
 export async function PUT(request, { params }) {
   try {
@@ -40,7 +40,6 @@ export async function DELETE(request, { params }) {
   try {
     const { id } = params;
 
-    const { pool } = await import('@/lib/db');
     const client = await pool.connect();
     
     try {
