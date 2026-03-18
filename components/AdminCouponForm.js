@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import { supabase } from '../lib/supabase'
 import { Save, X, Loader2, Ticket, Calendar, Hash } from 'lucide-react'
 
 // ✅ FIX TIMEZONE: Convierte una fecha UTC de la DB al formato que necesita

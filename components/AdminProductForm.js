@@ -1,7 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { supabase } from '../lib/supabase'
 import { X, Save, Upload, Loader2, Layers, Image as ImageIcon, Zap, Gift, Plus } from 'lucide-react'
 
 export default function AdminProductForm({ productToEdit, onCancel, onSaved }) {

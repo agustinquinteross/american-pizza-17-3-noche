@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
 import { Save, X, Loader2, Layers } from 'lucide-react'
 
 export default function AdminGroupForm({ groupToEdit, onCancel, onSaved }) {

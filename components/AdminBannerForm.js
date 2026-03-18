@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
 import Image from 'next/image'
-import { supabase } from '../lib/supabase'
 import { Save, X, Loader2, Image as ImageIcon } from 'lucide-react'
 
 export default function AdminBannerForm({ onCancel, onSaved }) {
@@ -50,20 +49,26 @@ export default function AdminBannerForm({ onCancel, onSaved }) {
 
     setLoading(true)
     try {
-      const { error } = await supabase
-        .from('banners')
-        .insert([{
+      const res = await fetch('/api/banners', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           title,
           image_url: imageUrl,
           is_active: true
-        }])
+        })
+      });
 
-      if (error) throw error
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to save banner');
+      }
+      
       onSaved()
 
     } catch (error) {
       console.error(error)
-      alert('Error guardando banner')
+      alert('Error guardando banner: ' + error.message)
     } finally {
       setLoading(false)
     }

@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
 import { Lock, User, ChevronRight, X, Delete } from 'lucide-react'
 
 export default function WaiterLogin({ onLogin }) {

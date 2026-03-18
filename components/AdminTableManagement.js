@@ -1,7 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { Calendar, DollarSign, Clock, User, Coffee, Search, Download, Trash2, ArrowLeft, BarChart3 } from 'lucide-react'
-import { supabase } from '../lib/supabase'
 import AdminTableStats from './AdminTableStats'
 
 export default function AdminTableManagement({ onBack }) {
@@ -15,14 +14,13 @@ export default function AdminTableManagement({ onBack }) {
 
     const fetchHistory = async () => {
         setLoading(true)
-        const { data } = await supabase
-            .from('table_sessions')
-            .select('*, restaurant_tables(label)')
-            .eq('status', 'closed')
-            .order('closed_at', { ascending: false })
-            // Opcional: filtrar por fecha si se desea
-        
-        setHistory(data || [])
+        try {
+            const res = await fetch('/api/table-sessions?status=closed');
+            if (res.ok) {
+                const data = await res.json();
+                setHistory(data || [])
+            }
+        } catch(e) { console.error(e) }
         setLoading(false)
     }
 

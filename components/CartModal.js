@@ -1,7 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useCart } from '../store/useCart'
-import { supabase } from '../lib/supabase'
 import { X, Loader2, MapPin, Store, Search, Trash2, Ticket, CreditCard, MessageCircle, Wallet, Gift } from 'lucide-react'
 import dynamic from 'next/dynamic'
 

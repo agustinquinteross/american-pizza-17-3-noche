@@ -8,7 +8,7 @@ import {
   Loader2, TrendingUp, ShoppingBag, Clock,
   Award, Wallet, CreditCard, Printer, Calendar
 } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+// Eliminamos dependencia de Supabase para métricas
 
 // ─────────────────────────────────────────────
 // FORMATTING HELPERS
@@ -129,16 +129,13 @@ export default function DashboardMetrics() {
       setLoading(true);
       const { start, end } = getDateRange();
 
-      // Fallback manual order query para asegurarnos de que el Custom Range funcione exacto con la fecha de la base.
-      const { data: rawOrders, error } = await supabase
-        .from('orders')
-        .select('*, order_items(*)')
-        .neq('status', 'cancelled')
-        .gte('created_at', start.toISOString())
-        .lte('created_at', end.toISOString())
-        .order('created_at', { ascending: false });
+      const response = await fetch(`/api/admin/metrics?start=${start.toISOString()}&end=${end.toISOString()}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch metrics');
+      }
 
-      if (error) throw error;
+      const rawOrders = await response.json();
       processRawOrders(rawOrders || []);
 
     } catch (err) {

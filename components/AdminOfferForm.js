@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import { supabase } from '../lib/supabase'
 import { X, Save, Zap, Percent, Copy, Loader2, Tag } from 'lucide-react'
 
 export default function AdminOfferForm({ onCancel, onSaved }) {

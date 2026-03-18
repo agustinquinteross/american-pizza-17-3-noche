@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
 import { Coffee, Plus, MapPin, List, LayoutGrid, Move, Trash2, Check, BarChart3 } from 'lucide-react'
-import { supabase } from '../lib/supabase'
 
 export default function AdminTableMap({ zones, tables, onTableClick, onCreateTable, onCreateZone, onRefresh, designMode, setDesignMode, onShowManagement, isAdmin = true, initialView = "map" }) {
     const [selectedZoneId, setSelectedZoneId] = useState(zones[0]?.id || null)

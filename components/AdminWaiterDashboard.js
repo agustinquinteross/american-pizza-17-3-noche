@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
 import { User, Plus, Trash2, TrendingUp, DollarSign, Coffee, Calendar, RefreshCw, X } from 'lucide-react'
 
 export default function AdminWaiterDashboard() {

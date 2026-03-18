@@ -1,7 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { X, Plus, Printer, Check, DollarSign, Utensils, List, Coffee, Trash2, Send, ChevronRight, XCircle } from 'lucide-react'
-import { supabase } from '../lib/supabase'
 import AdminProductOptionSelector from './AdminProductOptionSelector'
 import AdminSessionReceipt from './AdminSessionReceipt'
 import WaiterLogin from './WaiterLogin'

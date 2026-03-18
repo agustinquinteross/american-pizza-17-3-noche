@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { supabase } from '../lib/supabase'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 
@@ -13,34 +12,38 @@ export default function PromoCarousel() {
   // desde cualquier función sin depender del closure.
   const intervalRef = useRef(null)
 
-  // 1. Cargar Banners desde Supabase y escuchar cambios en vivo
+  // 1. Cargar Banners desde Postgres y escuchar cambios vía Pusher
   useEffect(() => {
     const fetchBanners = async () => {
-      const { data } = await supabase
-        .from('banners')
-        .select('*')
-        .eq('is_active', true)
-        .order('id', { ascending: false })
-
-      if (data) {
-         setBanners(data)
-         // Evitamos crashear si el banner actual se borra y queda fuera de índice
-         setCurrentIndex(prev => prev >= data.length && data.length > 0 ? 0 : prev)
-      }
+      try {
+        const res = await fetch('/api/banners');
+        if (res.ok) {
+          const data = await res.json();
+          setBanners(data);
+          setCurrentIndex(prev => prev >= data.length && data.length > 0 ? 0 : prev)
+        }
+      } catch(e) { console.error(e) }
       setLoading(false)
     }
     fetchBanners()
 
-    const bannersChannel = supabase
-      .channel('public_banners_realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'banners' }, (payload) => {
-         console.log("Banner actualizado en vivo:", payload);
-         fetchBanners();
-      })
-      .subscribe();
+    let pusherObj;
+    let bannerChannel;
+
+    const setupPusher = async () => {
+      const { pusherClient } = await import('@/lib/pusher');
+      pusherObj = pusherClient;
+      bannerChannel = pusherClient.subscribe('banners');
+      bannerChannel.bind('banner-event', () => {
+        fetchBanners();
+      });
+    };
+
+    setupPusher();
 
     return () => {
-      supabase.removeChannel(bannersChannel);
+      if (bannerChannel) bannerChannel.unbind_all();
+      if (pusherObj) pusherObj.unsubscribe('banners');
     }
   }, [])
 

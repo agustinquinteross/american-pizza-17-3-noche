@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
 import { X, Save, Coffee } from 'lucide-react'
-import { supabase } from '../lib/supabase'
 
 export default function AdminTableForm({ tableToEdit, zoneId, onClose, onRefresh }) {
     const [label, setLabel] = useState(tableToEdit?.label || '')

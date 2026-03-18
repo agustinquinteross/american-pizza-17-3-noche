@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
 import { X, Save, MapPin } from 'lucide-react'
-import { supabase } from '../lib/supabase'
 
 export default function AdminZoneForm({ zoneToEdit, onClose, onRefresh }) {
     const [name, setName] = useState(zoneToEdit?.name || '')
