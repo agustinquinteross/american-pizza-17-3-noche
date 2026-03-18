@@ -151,18 +151,65 @@ export default function TableSessionModal({ table, products, categories = [], on
         } catch(e) { console.error(e); setLoading(false); }
     }
 
-    // Calcula el precio base considerando la oferta activa
+    // Calcula el precio base para descuentos de unidad simple (percentage, fixed, fixed_price)
+    // NxM y second_unit se calculan a nivel de carrito completo, no por unidad
     const calcBasePrice = (product) => {
         if (!product.special_offers?.is_active) return Number(product.price);
         const offer = product.special_offers;
-        if (offer.type === 'percentage') {
-            return Math.round(Number(product.price) * (1 - Number(offer.discount_value) / 100));
+        if (offer.type === 'percent' || offer.type === 'percentage') {
+            const pct = parseFloat(offer.discount_value) || 0;
+            return Math.round(Number(product.price) * (1 - pct / 100));
         } else if (offer.type === 'fixed') {
             return Math.max(0, Number(product.price) - Number(offer.discount_value));
         } else if (offer.type === 'fixed_price') {
             return Number(offer.discount_value);
         }
+        // nxm, 2x1, second_unit → precio unitario sin descuento, el ahorro se calcula a nivel carrito
         return Number(product.price);
+    };
+
+    // Calcula el ahorro por promos NxM y second_unit del carrito completo
+    const getCartPromoSavings = (cartItems) => {
+        let savings = 0;
+        // Agrupar por product_id para detectar multi-unidad
+        const byProduct = {};
+        cartItems.forEach(item => {
+            if (!byProduct[item.product_id]) byProduct[item.product_id] = [];
+            byProduct[item.product_id].push(item);
+        });
+        Object.values(byProduct).forEach(items => {
+            const offer = items[0]?.offer;
+            if (!offer || !offer.is_active) return;
+            const qty = items.length;
+            const unitPrice = Number(items[0].unit_price || items[0].price);
+            if (offer.type === 'nxm' || offer.type === '2x1') {
+                let n = 2, m = 1;
+                if (offer.type === 'nxm') {
+                    const parts = (offer.discount_value || '').toLowerCase().split('x');
+                    n = parseInt(parts[0]) || 2;
+                    m = parseInt(parts[1]) || 1;
+                }
+                if (n > m && n > 0) {
+                    savings += Math.floor(qty / n) * (n - m) * unitPrice;
+                }
+            } else if (offer.type === 'second_unit') {
+                const pct = parseFloat(offer.discount_value) || 0;
+                const pairs = Math.floor(qty / 2);
+                savings += pairs * Math.round(unitPrice * pct / 100);
+            }
+        });
+        return Math.round(savings);
+    };
+
+    // Describe la oferta para mostrar en el producto
+    const getOfferBadge = (offer) => {
+        if (!offer?.is_active) return null;
+        if (offer.type === 'nxm' || offer.type === '2x1') return offer.discount_value || '2x1';
+        if (offer.type === 'second_unit') return `${parseFloat(offer.discount_value)}% 2DA`;
+        if (offer.type === 'percent' || offer.type === 'percentage') return `${parseFloat(offer.discount_value)}% OFF`;
+        if (offer.type === 'fixed') return `-${fmt(Number(offer.discount_value))}`;
+        if (offer.type === 'fixed_price') return `¡PRECIO: ${fmt(Number(offer.discount_value))}!`;
+        return offer.title || 'PROMO';
     };
 
     const addToCart = (product, optionsText = '', extraPrice = 0, itemNote = '') => {
@@ -173,8 +220,10 @@ export default function TableSessionModal({ table, products, categories = [], on
             product_name: product.name,
             quantity: 1,
             price: Math.round(basePrice + Number(extraPrice)),
+            unit_price: Math.round(basePrice),  // precio sin extras, para cálculo NxM
             options: optionsText,
-            internal_notes: itemNote
+            internal_notes: itemNote,
+            offer: product.special_offers || null  // guardamos la oferta para calcular savings
         }
         setCart(prev => [...prev, cartItem])
         setShowAddMenu(false)
@@ -192,7 +241,8 @@ export default function TableSessionModal({ table, products, categories = [], on
         }
         
         setLoading(true)
-        const batchTotal = cart.reduce((acc, item) => acc + Number(item.price), 0)
+        const promoSavings = getCartPromoSavings(cart);
+        const batchTotal = Math.max(0, Math.round(cart.reduce((acc, item) => acc + Number(item.price), 0) - promoSavings))
         
         const tableLabel = table.label || ''
         const displayLabel = tableLabel.toLowerCase().includes('mesa') ? tableLabel.toUpperCase() : `MESA ${tableLabel.toUpperCase()}`
@@ -326,7 +376,9 @@ export default function TableSessionModal({ table, products, categories = [], on
     }
 
     const totalAcumulado = Math.round(sessionOrders.reduce((acc, order) => acc + Number(order.total), 0))
-    const cartTotal = Math.round(cart.reduce((acc, item) => acc + Number(item.price), 0))
+    const cartSubtotal = Math.round(cart.reduce((acc, item) => acc + Number(item.price), 0))
+    const cartPromoSavings = getCartPromoSavings(cart)
+    const cartTotal = Math.max(0, cartSubtotal - cartPromoSavings)
     const fmt = (n) => `$${Number(n).toLocaleString('es-AR')}`
 
     return (
@@ -376,7 +428,7 @@ export default function TableSessionModal({ table, products, categories = [], on
                         {/* Contenido de la Sesión */}
                         <div className="flex-1 overflow-y-auto p-4 dash-scroll space-y-6">
                             
-                            {/* 🛒 CARRITO LOCAL (NUEVO) */}
+                            {/* 🛒 CARRITO LOCAL */}
                             {cart.length > 0 && (
                                 <div className="space-y-3 p-4 bg-[#E31B23]/5 border border-[#E31B23]/20 rounded-3xl animate-in slide-in-from-top duration-300">
                                     <div className="flex justify-between items-center mb-2">
@@ -391,6 +443,11 @@ export default function TableSessionModal({ table, products, categories = [], on
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-xs font-bold text-white uppercase">{item.product_name}</p>
                                                     {item.options && <p className="text-[9px] text-white/40 italic truncate">{item.options}</p>}
+                                                    {item.offer?.is_active && (
+                                                        <span className="text-[8px] font-black text-yellow-400 uppercase">
+                                                            🏷 {getOfferBadge(item.offer)}
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 <div className="flex items-center gap-3">
                                                     <span className="text-xs font-black text-[#E31B23]">{fmt(item.price)}</span>
@@ -401,6 +458,12 @@ export default function TableSessionModal({ table, products, categories = [], on
                                             </div>
                                         ))}
                                     </div>
+                                    {cartPromoSavings > 0 && (
+                                        <div className="flex justify-between items-center px-2 py-1.5 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
+                                            <span className="text-[9px] font-black text-yellow-400 uppercase tracking-widest">🎉 Ahorro por Promo</span>
+                                            <span className="text-[9px] font-black text-yellow-400">-{fmt(cartPromoSavings)}</span>
+                                        </div>
+                                    )}
                                     <button 
                                         onClick={confirmOrderToKitchen}
                                         className="w-full bg-[#E31B23] py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-[#E31B23]/20 hover:scale-[1.02] active:scale-98 transition-all text-white"
@@ -567,21 +630,26 @@ export default function TableSessionModal({ table, products, categories = [], on
                                                 {product.image_url ? <img src={product.image_url} alt="" className="w-full h-full object-cover"/> : '🍕'}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-1">
+                                                <div className="flex items-center gap-1 flex-wrap">
                                                     <h4 className="font-bold text-xs sm:text-sm truncate uppercase text-white/70 leading-tight group-hover:text-white transition-colors">{product.name}</h4>
                                                     {isOutOfStock && <span className="text-[8px] font-black bg-[#E31B23] text-white px-1.5 py-0.5 rounded block shrink-0">AGOTADO</span>}
+                                                    {product.special_offers?.is_active && (
+                                                        <span className="text-[8px] font-black bg-yellow-400 text-black px-1.5 py-0.5 rounded uppercase shrink-0 animate-pulse">
+                                                            {getOfferBadge(product.special_offers)}
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <p className="text-sm sm:text-base font-black text-[#E31B23] italic tracking-tight">
                                                         {fmt(calcBasePrice(product))}
                                                     </p>
-                                                    {product.special_offers?.is_active && (
-                                                        <span className="text-[9px] font-bold bg-yellow-500 text-black px-1.5 py-0.5 rounded uppercase animate-pulse">
-                                                            {product.special_offers.title}
-                                                        </span>
-                                                    )}
-                                                    {product.special_offers?.is_active && (
+                                                    {product.special_offers?.is_active && 
+                                                     !['nxm','2x1','second_unit'].includes(product.special_offers.type) && (
                                                         <span className="text-[9px] text-white/30 line-through">{fmt(Number(product.price))}</span>
+                                                    )}
+                                                    {product.special_offers?.is_active && 
+                                                     ['nxm','2x1','second_unit'].includes(product.special_offers.type) && (
+                                                        <span className="text-[9px] text-yellow-400/70 italic">dto. al agregar {['nxm','2x1'].includes(product.special_offers.type) ? 'varios' : '2+'}</span>
                                                     )}
                                                 </div>
                                             </div>
