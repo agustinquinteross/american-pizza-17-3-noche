@@ -385,6 +385,11 @@ export default function TableSessionModal({ table, products, categories = [], on
     const cartTotal = Math.max(0, cartSubtotal - cartPromoSavings)
     const fmt = (n) => `$${Number(n).toLocaleString('es-AR')}`
 
+    // ✅ LOCK: Si hay un mozo logueado (no es el admin) y la sesión pertenece a otro mozo → modo lectura
+    // Admin (loggedWaiter === null o undefined) siempre tiene acceso completo.
+    const sessionOwnerName = session?.waiters?.name || waiter?.name || 'otro mozo'
+    const isLockedForMe = !!loggedWaiter && !!session?.waiter_id && session.waiter_id !== loggedWaiter.id
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center md:justify-end bg-black/80 backdrop-blur-md px-0 sm:px-4">
             <div className="w-full md:w-[500px] h-full sm:h-[95vh] md:h-screen bg-[#0A0A0A] sm:rounded-t-[40px] md:rounded-none border-l border-white/10 flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom md:slide-in-from-right duration-300">
@@ -540,33 +545,53 @@ export default function TableSessionModal({ table, products, categories = [], on
                                 <span className="text-2xl font-black text-white italic tracking-tighter">{fmt(totalAcumulado)}</span>
                             </div>
 
-                            <div className="grid grid-cols-2 xs:grid-cols-2 gap-2">
-                                <button 
-                                    onClick={() => setShowAddMenu(true)}
-                                    className="bg-white/5 border border-white/10 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white/10 transition-colors text-white"
-                                >
-                                    <Plus size={18}/> Agregar
-                                </button>
-                                <button 
-                                    onClick={requestAccount}
-                                    className={`bg-white/5 border border-white/10 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all text-white
-                                        ${table.status === 'cuenta_pedida' ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/40' : 'hover:bg-white/10'}`}
-                                >
-                                    <DollarSign size={18}/> {table.status === 'cuenta_pedida' ? 'Pedida' : 'Cuenta'}
-                                </button>
-                                <button 
-                                    onClick={() => setShowReceipt(true)}
-                                    className="bg-white/5 border border-white/10 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white/10 transition-colors text-white"
-                                >
-                                    <Printer size={18}/> Ticket
-                                </button>
-                                <button 
-                                    onClick={() => setIsCheckingOut(true)}
-                                    className="bg-green-600 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-green-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all text-white"
-                                >
-                                    <Check size={18}/> Cobrar
-                                </button>
-                            </div>
+                            {isLockedForMe ? (
+                                // ✅ MODO LECTURA: esta mesa pertenece a otro mozo
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-3 bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-4">
+                                        <span className="text-2xl">🔒</span>
+                                        <div>
+                                            <p className="text-[10px] font-black text-yellow-400 uppercase tracking-widest">Mesa bloqueada</p>
+                                            <p className="text-[9px] text-yellow-400/70 font-bold uppercase mt-0.5">Atendida por <span className="text-yellow-300">{sessionOwnerName.toUpperCase()}</span></p>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={() => setShowReceipt(true)}
+                                        className="w-full bg-white/5 border border-white/10 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white/10 transition-colors text-white"
+                                    >
+                                        <Printer size={18}/> Ver Ticket
+                                    </button>
+                                </div>
+                            ) : (
+                                // ACCESO COMPLETO: es el dueño de la mesa o es el admin
+                                <div className="grid grid-cols-2 xs:grid-cols-2 gap-2">
+                                    <button 
+                                        onClick={() => setShowAddMenu(true)}
+                                        className="bg-white/5 border border-white/10 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white/10 transition-colors text-white"
+                                    >
+                                        <Plus size={18}/> Agregar
+                                    </button>
+                                    <button 
+                                        onClick={requestAccount}
+                                        className={`bg-white/5 border border-white/10 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all text-white
+                                            ${table.status === 'cuenta_pedida' ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/40' : 'hover:bg-white/10'}`}
+                                    >
+                                        <DollarSign size={18}/> {table.status === 'cuenta_pedida' ? 'Pedida' : 'Cuenta'}
+                                    </button>
+                                    <button 
+                                        onClick={() => setShowReceipt(true)}
+                                        className="bg-white/5 border border-white/10 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white/10 transition-colors text-white"
+                                    >
+                                        <Printer size={18}/> Ticket
+                                    </button>
+                                    <button 
+                                        onClick={() => setIsCheckingOut(true)}
+                                        className="bg-green-600 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-green-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all text-white"
+                                    >
+                                        <Check size={18}/> Cobrar
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

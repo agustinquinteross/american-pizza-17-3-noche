@@ -27,7 +27,7 @@ export default function AdminWaiterDashboard() {
             // Procesar analíticas
             const processedStats = waitersList.map(waiter => {
                 const waiterSessions = sessions.filter(s => s.waiter_id === waiter.id)
-                const totalSales = waiterSessions.reduce((acc, s) => acc + (s.total || 0), 0)
+                const totalSales = waiterSessions.reduce((acc, s) => acc + (Number(s.total) || 0), 0)
                 const closedSessions = waiterSessions.filter(s => s.status === 'closed').length
                 const activeSessions = waiterSessions.filter(s => s.status !== 'closed').length
 
@@ -96,7 +96,7 @@ export default function AdminWaiterDashboard() {
                 <div className="bg-[#E31B23] p-6 rounded-[32px] flex flex-col justify-between shadow-lg shadow-[#E31B23]/20">
                     <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-4">Ventas Totales (Salón)</p>
                     <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-black italic text-white">${stats.reduce((acc, w) => acc + w.totalSales, 0).toLocaleString()}</span>
+                        <span className="text-4xl font-black italic text-white">${Math.round(stats.reduce((acc, w) => acc + w.totalSales, 0)).toLocaleString('es-AR')}</span>
                     </div>
                 </div>
                 <div className="bg-white p-6 rounded-[32px] flex flex-col justify-between shadow-xl">
@@ -156,13 +156,13 @@ export default function AdminWaiterDashboard() {
                                         </div>
                                     </td>
                                     <td className="px-8 py-6 text-right">
-                                        <p className="text-2xl font-black italic text-white tracking-tighter">${waiter.totalSales.toLocaleString()}</p>
+                                        <p className="text-2xl font-black italic text-white tracking-tighter">${Math.round(waiter.totalSales).toLocaleString('es-AR')}</p>
                                     </td>
                                     <td className="px-8 py-6 text-center">
                                         <span className="font-black text-white/60">{waiter.closedSessions}</span>
                                     </td>
                                     <td className="px-8 py-6 text-center">
-                                        <p className="text-xs font-bold text-white/40">${waiter.avgPerSession.toLocaleString()}</p>
+                                        <p className="text-xs font-bold text-white/40">${Math.round(waiter.avgPerSession).toLocaleString('es-AR')}</p>
                                     </td>
                                     <td className="px-8 py-6 text-center">
                                         <code className="bg-black px-3 py-1 rounded-lg text-xs border border-white/5 font-mono text-[#E31B23]">{waiter.pin_code}</code>

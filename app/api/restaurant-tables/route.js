@@ -4,17 +4,25 @@ import { query, handleError, serializeJSON } from '@/lib/db';
 export async function GET() {
   try {
     const sql = `
-      SELECT t.*, z.name as "restaurant_zones(name)"
+      SELECT 
+        t.*, 
+        z.name as "restaurant_zones(name)",
+        ts.waiter_id as session_waiter_id,
+        w.name as session_waiter_name
       FROM restaurant_tables t
       LEFT JOIN restaurant_zones z ON t.zone_id = z.id
+      LEFT JOIN table_sessions ts ON ts.table_id = t.id AND ts.status = 'open'
+      LEFT JOIN waiters w ON w.id = ts.waiter_id
       ORDER BY t.id ASC
     `;
     const { rows } = await query(sql);
     
-    // Formatear para que coincida con lo que el frontend espera de Supabase ("restaurant_zones(name)")
     const formatted = rows.map(r => ({
        ...r,
-       restaurant_zones: r["restaurant_zones(name)"] ? { name: r["restaurant_zones(name)"] } : null
+       restaurant_zones: r["restaurant_zones(name)"] ? { name: r["restaurant_zones(name)"] } : null,
+       // Incluimos el mozo dueño de la sesión activa para el lock visual en el mapa
+       session_waiter_id: r.session_waiter_id || null,
+       session_waiter_name: r.session_waiter_name || null,
     }));
     
     return NextResponse.json(serializeJSON(formatted));

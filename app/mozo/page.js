@@ -155,6 +155,7 @@ export default function MozoPage() {
                         onShowManagement={() => {}} // Deshabilitado
                         isAdmin={false}
                         initialView="grid"
+                        loggedWaiter={waiter}
                     />
                 </div>
             </main>

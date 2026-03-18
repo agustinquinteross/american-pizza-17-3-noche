@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { Coffee, Plus, MapPin, List, LayoutGrid, Move, Trash2, Check, BarChart3 } from 'lucide-react'
 
-export default function AdminTableMap({ zones, tables, onTableClick, onCreateTable, onCreateZone, onRefresh, designMode, setDesignMode, onShowManagement, isAdmin = true, initialView = "map" }) {
+export default function AdminTableMap({ zones, tables, onTableClick, onCreateTable, onCreateZone, onRefresh, designMode, setDesignMode, onShowManagement, isAdmin = true, initialView = "map", loggedWaiter = null }) {
     const [selectedZoneId, setSelectedZoneId] = useState(zones[0]?.id || null)
     const [viewType, setViewType] = useState(initialView) // 'map' or 'grid'
     const [reservationTable, setReservationTable] = useState(null)
@@ -170,11 +170,19 @@ export default function AdminTableMap({ zones, tables, onTableClick, onCreateTab
                                 </div>
                             )}
                             
-                            {table.status === 'ocupada' && !designMode && (
-                                <div className="absolute -top-2 -right-2 bg-[#E31B23] text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg border border-white/20 animate-pulse">
-                                    EN USO
-                                </div>
-                            )}
+                            {table.status === 'ocupada' && !designMode && (() => {
+                                // ✅ LOCK: si la mesa tiene sesión activa de otro mozo, mostrar candado
+                                const isLocked = !!loggedWaiter && !!table.session_waiter_id && table.session_waiter_id !== loggedWaiter.id
+                                return isLocked ? (
+                                    <div className="absolute -top-2 -right-2 bg-yellow-500 text-black text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg border border-white/20 flex items-center gap-1">
+                                        🔒 {(table.session_waiter_name || 'otro').split(' ')[0].toUpperCase()}
+                                    </div>
+                                ) : (
+                                    <div className="absolute -top-2 -right-2 bg-[#E31B23] text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg border border-white/20 animate-pulse">
+                                        EN USO
+                                    </div>
+                                )
+                            })()}
 
                             {designMode && (
                                 <button 
