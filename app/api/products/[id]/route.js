@@ -30,7 +30,18 @@ export async function PUT(request, { params }) {
            image_url = $6, promo_tag = $7, is_active = $8, stock = $9
        WHERE id = $10 
        RETURNING *`,
-      [name, description, price, cost_price, category_id, image_url, promo_tag, is_active, stock, id]
+      [
+        name, 
+        description || null, 
+        price, 
+        cost_price || null, 
+        category_id || null, 
+        image_url || null, 
+        promo_tag || null, 
+        is_active ?? true, 
+        stock ?? 0, 
+        id
+      ]
     );
 
     if (rows.length === 0) {
