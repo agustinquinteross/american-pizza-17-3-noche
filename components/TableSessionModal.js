@@ -163,7 +163,7 @@ export default function TableSessionModal({ table, products, categories = [], on
             product_id: product.id,
             product_name: product.name,
             quantity: 1,
-            price: basePrice + extraPrice,
+            price: Number(basePrice) + Number(extraPrice),
             options: optionsText,
             internal_notes: itemNote
         }
@@ -183,7 +183,7 @@ export default function TableSessionModal({ table, products, categories = [], on
         }
         
         setLoading(true)
-        const batchTotal = cart.reduce((acc, item) => acc + item.price, 0)
+        const batchTotal = cart.reduce((acc, item) => acc + Number(item.price), 0)
         
         const tableLabel = table.label || ''
         const displayLabel = tableLabel.toLowerCase().includes('mesa') ? tableLabel.toUpperCase() : `MESA ${tableLabel.toUpperCase()}`
@@ -224,7 +224,7 @@ export default function TableSessionModal({ table, products, categories = [], on
                 return;
             }
 
-            const newTotal = (session.total || 0) + batchTotal;
+            const newTotal = Number(session.total || 0) + batchTotal;
             await fetch(`/api/table-sessions/${session.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -316,8 +316,8 @@ export default function TableSessionModal({ table, products, categories = [], on
         } catch(e) { console.error(e) }
     }
 
-    const totalAcumulado = sessionOrders.reduce((acc, order) => acc + order.total, 0)
-    const cartTotal = cart.reduce((acc, item) => acc + item.price, 0)
+    const totalAcumulado = sessionOrders.reduce((acc, order) => acc + Number(order.total), 0)
+    const cartTotal = cart.reduce((acc, item) => acc + Number(item.price), 0)
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center md:justify-end bg-black/80 backdrop-blur-md px-0 sm:px-4">

@@ -19,7 +19,7 @@ export default function AdminProductOptionSelector({ product, modifierGroups, on
         })
     }
 
-    const totalExtras = selectedOptions.reduce((acc, opt) => acc + (opt.price || 0), 0)
+    const totalExtras = selectedOptions.reduce((acc, opt) => acc + (Number(opt.price) || 0), 0)
     const optionsText = selectedOptions.map(o => o.name).join(', ')
 
     return (

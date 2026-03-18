@@ -8,7 +8,7 @@ export default function AdminSessionReceipt({ session, orders, onClose }) {
         window.print()
     }
 
-    const subtotal = orders.reduce((acc, o) => acc + o.total, 0)
+    const subtotal = orders.reduce((acc, o) => acc + Number(o.total), 0)
     const discount = session.discount || 0
     const total = subtotal - discount
 
