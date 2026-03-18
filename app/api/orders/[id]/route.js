@@ -1,6 +1,38 @@
 import { NextResponse } from 'next/server';
 import { query, handleError, pool, serializeJSON } from '@/lib/db';
 
+// ✅ GET: Obtener un pedido con sus items - usado por la página de tracking /pedido/[id]
+export async function GET(request, { params }) {
+  try {
+    const { id } = await params;
+
+    // Traer el pedido
+    const { rows: orderRows } = await query(
+      'SELECT * FROM orders WHERE id = $1',
+      [id]
+    );
+
+    if (orderRows.length === 0) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+
+    // Traer los items del pedido
+    const { rows: itemRows } = await query(
+      'SELECT * FROM order_items WHERE order_id = $1 ORDER BY id ASC',
+      [id]
+    );
+
+    const order = {
+      ...orderRows[0],
+      order_items: itemRows
+    };
+
+    return NextResponse.json(serializeJSON(order));
+  } catch (error) {
+    return handleError(error);
+  }
+}
+
 export async function PUT(request, { params }) {
   try {
     const { id } = await params;
@@ -22,10 +54,14 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    // Trigger Realtime update via Pusher
+    // Trigger Realtime update via Pusher — incluimos el orderId para que el cliente filtre correctamente
     try {
       const { pusherServer } = await import('@/lib/pusher-server');
-      await pusherServer.trigger('orders', 'order-event', { message: 'order-updated' });
+      await pusherServer.trigger('orders', 'order-event', { 
+        message: 'order-updated',
+        orderId: Number(id),
+        status: rows[0].status
+      });
     } catch (pError) {
       console.error('Pusher trigger error:', pError);
     }
