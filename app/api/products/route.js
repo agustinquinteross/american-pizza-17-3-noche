@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query, handleError, pool } from '@/lib/db';
+import { query, handleError, pool, serializeJSON } from '@/lib/db';
 
 export async function GET(request) {
   try {
@@ -72,7 +72,7 @@ export async function GET(request) {
         offer_is_active: undefined
       }));
 
-      return NextResponse.json(formattedData);
+      return NextResponse.json(serializeJSON(formattedData));
     } 
     else {
       const sql = `
@@ -103,7 +103,7 @@ export async function GET(request) {
         } : null,
       }))
       
-      return NextResponse.json(formattedData);
+      return NextResponse.json(serializeJSON(formattedData));
     }
 
   } catch (error) {
@@ -166,7 +166,7 @@ export async function POST(request) {
       }
     }
 
-    return NextResponse.json({ ...newProduct, selectedGroups }, { status: 201 });
+    return NextResponse.json(serializeJSON({ ...newProduct, selectedGroups }), { status: 201 });
 
   } catch (error) {
     return handleError(error);

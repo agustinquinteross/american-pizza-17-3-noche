@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query, handleError } from '@/lib/db';
+import { query, handleError, serializeJSON } from '@/lib/db';
 
 export async function GET(request, { params }) {
   try {
@@ -18,7 +18,7 @@ export async function GET(request, { params }) {
     formatted.waiters = formatted["waiters(name)"] ? { name: formatted["waiters(name)"] } : null;
     delete formatted["waiters(name)"];
 
-    return NextResponse.json(formatted);
+    return NextResponse.json(serializeJSON(formatted));
   } catch(error) {
     return handleError(error);
   }
@@ -61,7 +61,7 @@ export async function PUT(request, { params }) {
       console.error('Pusher trigger error:', pError);
     }
 
-    return NextResponse.json(rows[0]);
+    return NextResponse.json(serializeJSON(rows[0]));
   } catch (error) {
     return handleError(error);
   }

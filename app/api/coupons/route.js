@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query, handleError } from '@/lib/db';
+import { query, handleError, serializeJSON } from '@/lib/db';
 
 export async function GET(request) {
   try {
@@ -12,10 +12,10 @@ export async function GET(request) {
         [code]
       );
       if (rows.length === 0) return NextResponse.json({ error: 'Coupon not found' }, { status: 404 });
-      return NextResponse.json(rows[0]);
+      return NextResponse.json(serializeJSON(rows[0]));
     } else {
        const { rows } = await query('SELECT * FROM coupons ORDER BY created_at DESC');
-       return NextResponse.json(rows);
+       return NextResponse.json(serializeJSON(rows));
     }
   } catch (error) {
     return handleError(error);
@@ -36,7 +36,7 @@ export async function POST(request) {
       [code.toUpperCase(), discount_type, value || 0, usage_limit || null, is_active ?? true]
     );
 
-    return NextResponse.json(rows[0], { status: 201 });
+    return NextResponse.json(serializeJSON(rows[0]), { status: 201 });
   } catch (error) {
     if (error.code === '23505') {
         return NextResponse.json({ error: 'Ese código de cupón ya existe.' }, { status: 400 });
@@ -56,7 +56,7 @@ export async function PUT(request) {
          'UPDATE coupons SET times_used = times_used + 1 WHERE code = $1 RETURNING *',
          [code.toUpperCase()]
        );
-       return NextResponse.json(rows[0]);
+       return NextResponse.json(serializeJSON(rows[0]));
     }
 
     // General UPDATE for admin
@@ -72,7 +72,7 @@ export async function PUT(request) {
 
     if(rows.length === 0) return NextResponse.json({ error: 'Coupon not found' }, { status: 404 });
 
-    return NextResponse.json(rows[0]);
+    return NextResponse.json(serializeJSON(rows[0]));
 
   } catch (error) {
     return handleError(error);

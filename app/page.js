@@ -302,7 +302,13 @@ export default function Home() {
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-4xl">🍕</div>
                     )}
-                    <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-white px-3 py-1 rounded-xl font-black border border-white/10 text-xs sm:text-lg italic tracking-tighter shadow-2xl z-20">${product.price}</div>
+                    <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-white px-3 py-1 rounded-xl font-black border border-white/10 text-xs sm:text-lg italic tracking-tighter shadow-2xl z-20">
+                      ${product.special_offers?.is_active ? 
+                        (product.special_offers.type === 'percentage' ? 
+                            Math.round(product.price * (1 - product.special_offers.discount_value / 100)) : 
+                            product.special_offers.discount_value) 
+                        : product.price}
+                    </div>
                   </div>
                   <div className="pl-4 pr-2 pb-2">
                     <h3 className="text-base sm:text-2xl font-black text-white mb-1 uppercase italic tracking-tighter leading-none group-hover:text-[#E31B23] transition-colors">{product.name}</h3>

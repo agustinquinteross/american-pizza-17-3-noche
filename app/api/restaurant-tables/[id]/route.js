@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query, handleError } from '@/lib/db';
+import { query, handleError, serializeJSON } from '@/lib/db';
 
 export async function DELETE(request, { params }) {
   try {
@@ -60,7 +60,7 @@ export async function PUT(request, { params }) {
       console.error('Pusher trigger error:', pError);
     }
 
-    return NextResponse.json(rows[0]);
+    return NextResponse.json(serializeJSON(rows[0]));
   } catch (error) {
     return handleError(error);
   }

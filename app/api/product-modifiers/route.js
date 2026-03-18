@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query, handleError } from '@/lib/db';
+import { query, handleError, serializeJSON } from '@/lib/db';
 
 export async function GET(request) {
   try {
@@ -35,7 +35,7 @@ export async function GET(request) {
 
     const { rows } = await query(sql, [productId]);
     
-    return NextResponse.json(rows);
+    return NextResponse.json(serializeJSON(rows));
   } catch (error) {
     return handleError(error);
   }

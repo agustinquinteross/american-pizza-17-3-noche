@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query, handleError } from '@/lib/db';
+import { query, handleError, serializeJSON } from '@/lib/db';
 
 // Update a product
 export async function PUT(request, { params }) {
@@ -74,7 +74,7 @@ export async function PUT(request, { params }) {
       console.error('Pusher trigger error:', pError);
     }
 
-    return NextResponse.json(updatedProduct);
+    return NextResponse.json(serializeJSON(updatedProduct));
   } catch (error) {
     return handleError(error);
   }

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query, handleError, pool } from '@/lib/db';
+import { query, handleError, pool, serializeJSON } from '@/lib/db';
 
 export async function GET(request) {
   try {
@@ -48,7 +48,7 @@ export async function GET(request) {
     sql += ` GROUP BY o.id ORDER BY o.created_at DESC`;
 
     const { rows } = await query(sql, params);
-    return NextResponse.json(rows);
+    return NextResponse.json(serializeJSON(rows));
   } catch (error) {
     return handleError(error);
   }
@@ -119,7 +119,7 @@ export async function POST(request) {
       
       // Return order with its items for the frontend
       newOrder.order_items = items;
-      return NextResponse.json(newOrder, { status: 201 });
+      return NextResponse.json(serializeJSON(newOrder), { status: 201 });
       
     } catch (e) {
       await client.query('ROLLBACK');

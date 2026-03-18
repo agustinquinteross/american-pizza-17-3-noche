@@ -166,9 +166,17 @@ export default function PedidoTrackingPage() {
                 ))}
             </div>
 
-            <div className="bg-black/50 rounded-3xl p-6 flex justify-between items-center border border-white/5 mt-8 shadow-inner">
-                <span className="text-white/30 font-black text-[10px] uppercase tracking-[0.3em]">Total Abonado</span>
-                <span className="text-4xl font-black text-white italic tracking-tighter sm:text-5xl drop-shadow-[0_2px_10px_rgba(255,255,255,0.1)]">${order.total}</span>
+            <div className="bg-black/50 rounded-3xl p-6 space-y-3 border border-white/5 mt-8 shadow-inner">
+                {order.discount > 0 && (
+                    <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest text-[#E31B23]">
+                        <span>Ahorro Total</span>
+                        <span>-${order.discount}</span>
+                    </div>
+                )}
+                <div className="flex justify-between items-center border-t border-white/5 pt-3">
+                    <span className="text-white/30 font-black text-[10px] uppercase tracking-[0.3em]">{order.discount > 0 ? 'Total Final' : 'Total Abonado'}</span>
+                    <span className="text-4xl font-black text-white italic tracking-tighter sm:text-5xl drop-shadow-[0_2px_10px_rgba(255,255,255,0.1)]">${order.total}</span>
+                </div>
             </div>
         </div>
 

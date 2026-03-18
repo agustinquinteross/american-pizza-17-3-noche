@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query, handleError } from '@/lib/db';
+import { query, handleError, serializeJSON } from '@/lib/db';
 
 // PUT (Update) a category
 export async function PUT(request, { params }) {
@@ -20,7 +20,7 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: 'Category not found' }, { status: 404 });
     }
 
-    return NextResponse.json(rows[0]);
+    return NextResponse.json(serializeJSON(rows[0]));
   } catch (error) {
     return handleError(error);
   }

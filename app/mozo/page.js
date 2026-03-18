@@ -64,7 +64,7 @@ export default function MozoPage() {
             const [zRes, tRes, pRes, cRes] = await Promise.all([
                 fetch('/api/restaurant-zones'),
                 fetch('/api/restaurant-tables'),
-                fetch('/api/products'),
+                fetch('/api/products?withExtras=true'),
                 fetch('/api/categories')
             ]);
             

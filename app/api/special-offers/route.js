@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query, handleError } from '@/lib/db';
+import { query, handleError, serializeJSON } from '@/lib/db';
 
 export async function GET(request) {
   try {
@@ -13,7 +13,7 @@ export async function GET(request) {
     sql += 'ORDER BY id DESC';
 
     const { rows } = await query(sql);
-    return NextResponse.json(rows);
+    return NextResponse.json(serializeJSON(rows));
   } catch (error) {
     return handleError(error);
   }
@@ -33,7 +33,7 @@ export async function POST(request) {
       [title, description || null, type, discount_value, is_active ?? true]
     );
 
-    return NextResponse.json(rows[0], { status: 201 });
+    return NextResponse.json(serializeJSON(rows[0]), { status: 201 });
   } catch (error) {
     return handleError(error);
   }

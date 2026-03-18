@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query, handleError } from '@/lib/db';
+import { query, handleError, serializeJSON } from '@/lib/db';
 
 export async function GET() {
   try {
@@ -17,7 +17,7 @@ export async function GET() {
        restaurant_zones: r["restaurant_zones(name)"] ? { name: r["restaurant_zones(name)"] } : null
     }));
     
-    return NextResponse.json(formatted);
+    return NextResponse.json(serializeJSON(formatted));
   } catch (error) {
     return handleError(error);
   }
@@ -38,7 +38,7 @@ export async function POST(request) {
       [label, zone_id || null, shape || 'square', is_active ?? true]
     );
 
-    return NextResponse.json(rows[0], { status: 201 });
+    return NextResponse.json(serializeJSON(rows[0]), { status: 201 });
   } catch (error) {
     return handleError(error);
   }

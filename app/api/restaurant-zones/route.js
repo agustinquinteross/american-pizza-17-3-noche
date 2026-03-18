@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { query, handleError } from '@/lib/db';
+import { query, handleError, serializeJSON } from '@/lib/db';
 
 export async function GET() {
   try {
     const { rows } = await query('SELECT * FROM restaurant_zones ORDER BY id ASC');
-    return NextResponse.json(rows);
+    return NextResponse.json(serializeJSON(rows));
   } catch (error) {
     return handleError(error);
   }
@@ -24,7 +24,7 @@ export async function POST(request) {
       [name]
     );
 
-    return NextResponse.json(rows[0], { status: 201 });
+    return NextResponse.json(serializeJSON(rows[0]), { status: 201 });
   } catch (error) {
     return handleError(error);
   }
