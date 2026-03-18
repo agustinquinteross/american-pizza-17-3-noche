@@ -21,6 +21,21 @@ export default function AdminProductOptionSelector({ product, modifierGroups, on
 
     const totalExtras = selectedOptions.reduce((acc, opt) => acc + (Number(opt.price) || 0), 0)
     const optionsText = selectedOptions.map(o => o.name).join(', ')
+    const fmt = (n) => `$${Number(n).toLocaleString('es-AR')}`
+
+    // Calcula precio base del producto considerando ofertas
+    const calcBase = () => {
+        const p = Number(product.price);
+        if (!product.special_offers?.is_active) return p;
+        const offer = product.special_offers;
+        if (offer.type === 'percentage') return Math.round(p * (1 - Number(offer.discount_value) / 100));
+        if (offer.type === 'fixed') return Math.max(0, p - Number(offer.discount_value));
+        if (offer.type === 'fixed_price') return Number(offer.discount_value);
+        return p;
+    };
+    const basePrice = calcBase();
+    const totalProduct = Math.round(basePrice + totalExtras);
+
 
     return (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
@@ -69,7 +84,7 @@ export default function AdminProductOptionSelector({ product, modifierGroups, on
                                                 </div>
                                                 <span className={`font-bold text-sm ${isSelected ? 'text-white' : 'text-white/60'}`}>{opt.name}</span>
                                             </div>
-                                            {opt.price > 0 && <span className="font-black text-xs text-[#E31B23]">+${opt.price}</span>}
+                                             {Number(opt.price) > 0 && <span className="font-black text-xs text-[#E31B23]">+{fmt(Number(opt.price))}</span>}
                                         </button>
                                     )
                                 })}
@@ -82,11 +97,7 @@ export default function AdminProductOptionSelector({ product, modifierGroups, on
                     <div className="flex justify-between items-center mb-4">
                         <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Total del Producto</span>
                         <span className="text-xl font-black text-white italic">
-                            ${(product.special_offers?.is_active ? 
-                                (product.special_offers.type === 'percentage' ? 
-                                    Math.round(product.price * (1 - product.special_offers.discount_value / 100)) : 
-                                    product.special_offers.discount_value) 
-                                : product.price) + totalExtras}
+                            {fmt(totalProduct)}
                         </span>
                     </div>
                     <button 
