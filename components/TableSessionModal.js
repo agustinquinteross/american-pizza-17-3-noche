@@ -77,7 +77,7 @@ export default function TableSessionModal({ table, products, categories = [], on
         try {
             const [sRes, oRes] = await Promise.all([
                 fetch(`/api/table-sessions/${sessionId}`),
-                fetch('/api/orders') // we will need to filter by session_id in the API or fetch all and filter in frontend. Wait, the API doesn't support filtering by session_id natively yet, let's just make it do that or filter client-side.
+                fetch(`/api/orders?session_id=${sessionId}`) // 🚀 Filtro de servidor eficiente
             ]);
             
             if (sRes.ok) {
@@ -94,8 +94,8 @@ export default function TableSessionModal({ table, products, categories = [], on
             }
 
             if (oRes.ok) {
-                const allOrders = await oRes.json();
-                setSessionOrders(allOrders.filter(o => o.session_id === sessionId));
+                const sessionOrders = await oRes.json();
+                setSessionOrders(sessionOrders);
             }
         } catch(e) { console.error('Error fetching session data', e) }
 
