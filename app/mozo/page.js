@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { supabase } from '../../lib/supabase'
 import WaiterLogin from '../../components/WaiterLogin'
 import AdminTableMap from '../../components/AdminTableMap'
 import TableSessionModal from '../../components/TableSessionModal'

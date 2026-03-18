@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Search, Lock, MapPin, Phone, Instagram, Loader2, ShoppingCart, Clock, Zap, Gift } from 'lucide-react'

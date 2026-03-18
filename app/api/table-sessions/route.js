@@ -25,7 +25,11 @@ export async function GET(request) {
         sql += ' WHERE ts.waiter_id IS NOT NULL';
     }
 
-    sql += ' ORDER BY ts.created_at DESC';
+    if (status === 'closed') {
+        sql += ' ORDER BY ts.closed_at DESC';
+    } else {
+        sql += ' ORDER BY ts.created_at DESC';
+    }
     
     const { rows } = await query(sql, values);
     

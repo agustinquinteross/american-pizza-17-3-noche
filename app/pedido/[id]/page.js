@@ -1,7 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { supabase } from '../../../lib/supabase'
 import { useParams } from 'next/navigation'
 import { Clock, Utensils, Truck, CheckCircle, Loader2, MapPin, Package, Receipt } from 'lucide-react'
 import Link from 'next/link'
@@ -23,46 +22,54 @@ export default function PedidoTrackingPage() {
   useEffect(() => {
     if (!id) return
 
-    // 1. Buscamos el pedido inicial
+    // 1. Buscamos el pedido inicial via API Postgres
     const fetchOrder = async () => {
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*, order_items(*)')
-        .eq('id', id)
-        .single()
-
-      if (error || !data) {
-        setError(true)
-      } else {
-        setOrder(data)
+      try {
+        const res = await fetch(`/api/orders/${id}`);
+        if (res.ok) {
+           const data = await res.json();
+           setOrder(data);
+        } else {
+           setError(true);
+        }
+      } catch(e) {
+        console.error(e);
+        setError(true);
       }
       setLoading(false)
     }
 
     fetchOrder()
 
-    // 2. Nos suscribimos a los cambios EN VIVO de este pedido exacto
-    const channel = supabase
-      .channel(`order_tracking_${id}`)
-      .on('postgres_changes', { 
-          event: 'UPDATE', 
-          schema: 'public', 
-          table: 'orders', 
-          filter: `id=eq.${id}` 
-        }, 
-        (payload) => {
-          setOrder(prev => ({ ...prev, status: payload.new.status }))
-          
-          // Efecto de sonido cuando cambia de estado
-          try {
-             const audio = new Audio('https://cdn.freesound.org/previews/274/274183_4322723-lq.mp3')
-             audio.play().catch(e => console.log('Audio error', e))
-          } catch(e) {}
-        }
-      )
-      .subscribe()
+    // 2. Nos suscribimos a los cambios EN VIVO via Pusher
+    let pusherObj;
+    let orderChannel;
 
-    return () => { supabase.removeChannel(channel) }
+    const setupPusher = async () => {
+      const { pusherClient } = await import('../../../lib/pusher');
+      pusherObj = pusherClient;
+      orderChannel = pusherClient.subscribe('orders');
+      
+      orderChannel.bind('order-event', (data) => {
+        // Si el evento es sobre este pedido o un refresh general
+        if (data.orderId === id || data.orderId === Number(id) || !data.orderId) {
+           fetchOrder();
+           
+           // Efecto de sonido cuando cambia de estado
+           try {
+              const audio = new Audio('https://cdn.freesound.org/previews/274/274183_4322723-lq.mp3')
+              audio.play().catch(e => console.log('Audio error', e))
+           } catch(e) {}
+        }
+      });
+    };
+
+    setupPusher();
+
+    return () => {
+      if (orderChannel) orderChannel.unbind_all();
+      if (pusherObj) pusherObj.unsubscribe('orders');
+    }
   }, [id])
 
   if (loading) return <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center"><Loader2 className="animate-spin text-[#E31B23]" size={48} /></div>
