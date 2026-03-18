@@ -24,7 +24,7 @@ export async function PUT(request, { params }) {
   try {
     const { id } = params;
     const data = await request.json();
-    const { label, shape, is_active } = data;
+    const { label, shape, is_active, status, active_session_id, x_pos, y_pos } = data;
 
     const updates = [];
     const values = [];
@@ -33,6 +33,10 @@ export async function PUT(request, { params }) {
     if (label !== undefined) { updates.push(`label = $${i}`); values.push(label); i++; }
     if (shape !== undefined) { updates.push(`shape = $${i}`); values.push(shape); i++; }
     if (is_active !== undefined) { updates.push(`is_active = $${i}`); values.push(is_active); i++; }
+    if (status !== undefined) { updates.push(`status = $${i}`); values.push(status); i++; }
+    if (active_session_id !== undefined) { updates.push(`active_session_id = $${i}`); values.push(active_session_id); i++; }
+    if (x_pos !== undefined) { updates.push(`x_pos = $${i}`); values.push(x_pos); i++; }
+    if (y_pos !== undefined) { updates.push(`y_pos = $${i}`); values.push(y_pos); i++; }
 
     if (updates.length === 0) {
        return NextResponse.json({ error: 'At least one field is required' }, { status: 400 });

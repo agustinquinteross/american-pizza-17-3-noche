@@ -4,9 +4,9 @@ import { query, handleError } from '@/lib/db';
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('user_id'); // Opcional, para el cliente
+    const userId = searchParams.get('user_id'); // Opcional
+    const sessionId = searchParams.get('session_id'); // 🚀 Filtro de sesión para salón
     
-    // Al igual que con Supabase order_items(*), necesitamos un JSON_AGG para anidar los items
     let sql = `
       SELECT 
         o.*,
@@ -29,10 +29,20 @@ export async function GET(request) {
     `;
     
     const params = [];
+    const conditions = [];
+
     if (userId) {
-      // Si la tabla original tenía user_id o nos pasaran un filtro
       // sql += ' WHERE user_id = $1';
       // params.push(userId);
+    }
+
+    if (sessionId) {
+      conditions.push(`o.session_id = $${params.length + 1}`);
+      params.push(sessionId);
+    }
+
+    if (conditions.length > 0) {
+      sql += ` WHERE ${conditions.join(' AND ')}`;
     }
     
     sql += ` GROUP BY o.id ORDER BY o.created_at DESC`;

@@ -22,15 +22,15 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const data = await request.json();
-    const { title, description, discount_type, discount_value, valid_from, valid_until, is_active } = data;
+    const { title, description, type, discount_value, is_active } = data;
 
-    if (!title || !discount_type || discount_value === undefined) {
+    if (!title || !type || discount_value === undefined) {
       return NextResponse.json({ error: 'Title, type and value are required' }, { status: 400 });
     }
 
     const { rows } = await query(
-      'INSERT INTO special_offers (title, description, discount_type, discount_value, valid_from, valid_until, is_active) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [title, description || null, discount_type, discount_value || 0, valid_from || null, valid_until || null, is_active ?? true]
+      'INSERT INTO special_offers (title, description, type, discount_value, is_active) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [title, description || null, type, discount_value, is_active ?? true]
     );
 
     return NextResponse.json(rows[0], { status: 201 });

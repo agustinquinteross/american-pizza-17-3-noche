@@ -27,15 +27,15 @@ export async function PUT(request, { params }) {
   try {
     const { id } = params;
     const data = await request.json();
-    const { name, min_selections, max_selections, is_active } = data;
+    const { name, min_selection, max_selection, is_active } = data;
 
     const updates = [];
     const values = [];
     let i = 1;
 
     if (name !== undefined) { updates.push(`name = $${i}`); values.push(name); i++; }
-    if (min_selections !== undefined) { updates.push(`min_selections = $${i}`); values.push(min_selections); i++; }
-    if (max_selections !== undefined) { updates.push(`max_selections = $${i}`); values.push(max_selections); i++; }
+    if (min_selection !== undefined) { updates.push(`min_selection = $${i}`); values.push(min_selection); i++; }
+    if (max_selection !== undefined) { updates.push(`max_selection = $${i}`); values.push(max_selection); i++; }
     if (is_active !== undefined) { updates.push(`is_active = $${i}`); values.push(is_active); i++; }
 
     if (updates.length === 0) {
