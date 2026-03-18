@@ -151,19 +151,28 @@ export default function TableSessionModal({ table, products, categories = [], on
         } catch(e) { console.error(e); setLoading(false); }
     }
 
-    const addToCart = (product, optionsText = '', extraPrice = 0, itemNote = '') => {
-        const basePrice = product.special_offers?.is_active ? 
-            (product.special_offers.type === 'percentage' ? 
-                Math.round(product.price * (1 - product.special_offers.discount_value / 100)) : 
-                product.special_offers.discount_value) 
-            : product.price;
+    // Calcula el precio base considerando la oferta activa
+    const calcBasePrice = (product) => {
+        if (!product.special_offers?.is_active) return Number(product.price);
+        const offer = product.special_offers;
+        if (offer.type === 'percentage') {
+            return Math.round(Number(product.price) * (1 - Number(offer.discount_value) / 100));
+        } else if (offer.type === 'fixed') {
+            return Math.max(0, Number(product.price) - Number(offer.discount_value));
+        } else if (offer.type === 'fixed_price') {
+            return Number(offer.discount_value);
+        }
+        return Number(product.price);
+    };
 
+    const addToCart = (product, optionsText = '', extraPrice = 0, itemNote = '') => {
+        const basePrice = calcBasePrice(product);
         const cartItem = {
             id: Date.now(),
             product_id: product.id,
             product_name: product.name,
             quantity: 1,
-            price: Number(basePrice) + Number(extraPrice),
+            price: Math.round(basePrice + Number(extraPrice)),
             options: optionsText,
             internal_notes: itemNote
         }
@@ -249,7 +258,7 @@ export default function TableSessionModal({ table, products, categories = [], on
         try {
             const res = await fetch(`/api/orders/${orderId}`, { method: 'DELETE' });
             if (res.ok) {
-                const newTotal = Math.max(0, (session.total || 0) - orderToDelete.total)
+                const newTotal = Math.max(0, Number(session.total || 0) - Number(orderToDelete.total))
                 await fetch(`/api/table-sessions/${session.id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -316,8 +325,9 @@ export default function TableSessionModal({ table, products, categories = [], on
         } catch(e) { console.error(e) }
     }
 
-    const totalAcumulado = sessionOrders.reduce((acc, order) => acc + Number(order.total), 0)
-    const cartTotal = cart.reduce((acc, item) => acc + Number(item.price), 0)
+    const totalAcumulado = Math.round(sessionOrders.reduce((acc, order) => acc + Number(order.total), 0))
+    const cartTotal = Math.round(cart.reduce((acc, item) => acc + Number(item.price), 0))
+    const fmt = (n) => `$${Number(n).toLocaleString('es-AR')}`
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center md:justify-end bg-black/80 backdrop-blur-md px-0 sm:px-4">
@@ -373,7 +383,7 @@ export default function TableSessionModal({ table, products, categories = [], on
                                         <h3 className="text-[10px] font-black text-[#E31B23] uppercase tracking-[0.2em] flex items-center gap-2">
                                             <Utensils size={12}/> Pedido Nuevo (Por enviar)
                                         </h3>
-                                        <span className="text-xs font-black text-white">${cartTotal}</span>
+                                        <span className="text-xs font-black text-white">{fmt(cartTotal)}</span>
                                     </div>
                                     <div className="space-y-2">
                                         {cart.map(item => (
@@ -383,7 +393,7 @@ export default function TableSessionModal({ table, products, categories = [], on
                                                     {item.options && <p className="text-[9px] text-white/40 italic truncate">{item.options}</p>}
                                                 </div>
                                                 <div className="flex items-center gap-3">
-                                                    <span className="text-xs font-black text-[#E31B23]">${item.price}</span>
+                                                    <span className="text-xs font-black text-[#E31B23]">{fmt(item.price)}</span>
                                                     <button onClick={() => removeFromCart(item.id)} className="p-1.5 text-white/20 hover:text-red-500 transition-colors">
                                                         <Trash2 size={14}/>
                                                     </button>
@@ -395,7 +405,7 @@ export default function TableSessionModal({ table, products, categories = [], on
                                         onClick={confirmOrderToKitchen}
                                         className="w-full bg-[#E31B23] py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-[#E31B23]/20 hover:scale-[1.02] active:scale-98 transition-all text-white"
                                     >
-                                        <Send size={14}/> Enviar a Cocina (${cartTotal})
+                                        <Send size={14}/> Enviar a Cocina ({fmt(cartTotal)})
                                     </button>
                                 </div>
                             )}
@@ -439,7 +449,7 @@ export default function TableSessionModal({ table, products, categories = [], on
                                                                     <span className="text-[#E31B23]">{item.quantity}x</span>
                                                                     <span className="text-white/80 truncate max-w-[150px]">{item.product_name}</span>
                                                                 </div>
-                                                                <span>${item.price * item.quantity}</span>
+                                                                <span>{fmt(Number(item.price) * Number(item.quantity))}</span>
                                                             </div>
                                                             {item.options && <p className="text-[9px] text-white/30 italic ml-4 leading-tight">{item.options}</p>}
                                                             {item.internal_notes && <p className="text-[9px] text-yellow-500 italic mt-0.5 bg-yellow-400/5 px-1.5 py-0.5 rounded border border-yellow-400/10 line-clamp-1">📝 {item.internal_notes}</p>}
@@ -460,7 +470,7 @@ export default function TableSessionModal({ table, products, categories = [], on
                                     <p className="text-[9px] font-black text-white/40 uppercase tracking-widest leading-none">Total Consolidado</p>
                                     <p className="text-[8px] font-bold text-white/20 uppercase mt-1">Suma de consumos enviados</p>
                                 </div>
-                                <span className="text-2xl font-black text-white italic tracking-tighter">${totalAcumulado}</span>
+                                <span className="text-2xl font-black text-white italic tracking-tighter">{fmt(totalAcumulado)}</span>
                             </div>
 
                             <div className="grid grid-cols-2 xs:grid-cols-2 gap-2">
@@ -563,16 +573,15 @@ export default function TableSessionModal({ table, products, categories = [], on
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <p className="text-sm sm:text-base font-black text-[#E31B23] italic tracking-tight">
-                                                        ${product.special_offers?.is_active ? 
-                                                            (product.special_offers.type === 'percentage' ? 
-                                                                Math.round(product.price * (1 - product.special_offers.discount_value / 100)) : 
-                                                                product.special_offers.discount_value) 
-                                                            : product.price}
+                                                        {fmt(calcBasePrice(product))}
                                                     </p>
                                                     {product.special_offers?.is_active && (
                                                         <span className="text-[9px] font-bold bg-yellow-500 text-black px-1.5 py-0.5 rounded uppercase animate-pulse">
                                                             {product.special_offers.title}
                                                         </span>
+                                                    )}
+                                                    {product.special_offers?.is_active && (
+                                                        <span className="text-[9px] text-white/30 line-through">{fmt(Number(product.price))}</span>
                                                     )}
                                                 </div>
                                             </div>
@@ -621,7 +630,7 @@ export default function TableSessionModal({ table, products, categories = [], on
                         <div className="p-8 space-y-6">
                             <div className="text-center">
                                 <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] mb-1">Total a cobrar</p>
-                                <p className="text-5xl font-black text-white italic tracking-tighter">${totalAcumulado - discount}</p>
+                                <p className="text-5xl font-black text-white italic tracking-tighter">{fmt(totalAcumulado - discount)}</p>
                             </div>
 
                             <div className="space-y-3">
@@ -655,9 +664,9 @@ export default function TableSessionModal({ table, products, categories = [], on
                             </div>
 
                             <div className="bg-white/5 p-4 rounded-[24px] border border-white/5 space-y-2">
-                                <div className="flex justify-between text-xs font-bold text-white/40"><span>Subtotal</span><span>${totalAcumulado}</span></div>
-                                <div className="flex justify-between text-xs font-bold text-[#E31B23]"><span>Descuento</span><span>-${discount}</span></div>
-                                <div className="flex justify-between text-lg font-black text-white pt-2 border-t border-white/10 italic"><span>TOTAL</span><span>${totalAcumulado - discount}</span></div>
+                                <div className="flex justify-between text-xs font-bold text-white/40"><span>Subtotal</span><span>{fmt(totalAcumulado)}</span></div>
+                                <div className="flex justify-between text-xs font-bold text-[#E31B23]"><span>Descuento</span><span>-{fmt(discount)}</span></div>
+                                <div className="flex justify-between text-lg font-black text-white pt-2 border-t border-white/10 italic"><span>TOTAL</span><span>{fmt(totalAcumulado - discount)}</span></div>
                             </div>
 
                             <button 
