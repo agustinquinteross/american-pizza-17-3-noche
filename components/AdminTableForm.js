@@ -17,6 +17,7 @@ export default function AdminTableForm({ tableToEdit, zoneId, onClose, onRefresh
         }
         
         try {
+            console.log('Enviando datos de mesa:', tableData);
             const url = tableToEdit ? `/api/restaurant-tables/${tableToEdit.id}` : '/api/restaurant-tables';
             const res = await fetch(url, {
                 method: tableToEdit ? 'PUT' : 'POST',
@@ -25,15 +26,25 @@ export default function AdminTableForm({ tableToEdit, zoneId, onClose, onRefresh
             });
 
             if (res.ok) {
-                onRefresh()
-                onClose()
+                console.log('Mesa guardada con éxito.');
+                if (typeof onRefresh === 'function') {
+                    await onRefresh();
+                } else {
+                    console.warn('onRefresh no es una función:', onRefresh);
+                }
+                
+                if (typeof onClose === 'function') {
+                    onClose();
+                } else {
+                    console.warn('onClose no es una función:', onClose);
+                }
             } else {
                 const err = await res.json();
                 alert('Error al guardar mesa (R): ' + (err.error || JSON.stringify(err) || 'Unknown error'));
             }
         } catch(e) {
-            console.error(e);
-            alert('Error al guardar mesa (C): ' + e.message);
+            console.error('Error en handleSubmit:', e);
+            alert('Error al guardar mesa (C): ' + e.message + ' | Stack: ' + e.stack?.substring(0, 50));
         }
         setLoading(false)
     }
