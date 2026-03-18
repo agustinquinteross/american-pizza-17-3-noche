@@ -141,7 +141,17 @@ export async function POST(request) {
         (name, description, price, cost_price, category_id, image_url, promo_tag, is_active, stock) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
        RETURNING *`,
-      [name, description, price, cost_price, category_id, image_url, promo_tag, is_active ?? true, stock ?? 0]
+      [
+        name, 
+        description || null, 
+        price, 
+        cost_price || null, 
+        category_id || null, 
+        image_url || null, 
+        promo_tag || null, 
+        is_active ?? true, 
+        stock ?? 0
+      ]
     );
 
     const newProduct = productInsertResult.rows[0];
