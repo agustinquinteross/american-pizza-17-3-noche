@@ -24,7 +24,16 @@ export default function AdminTableMap({ zones, tables, onTableClick, onCreateTab
                             {zone.name}
                         </button>
                     ))}
-                    {!designMode && <div className="w-4 shrink-0" />} {/* Spacer for mobile scroll */}
+                    {isAdmin && (
+                        <button 
+                            onClick={onCreateZone}
+                            className="px-3 py-2 rounded-lg text-white/20 hover:text-[#E31B23] hover:bg-[#E31B23]/10 transition flex-shrink-0 border border-dashed border-white/10"
+                            title="Agregar Sección"
+                        >
+                            <Plus size={14}/>
+                        </button>
+                    )}
+                    {!designMode && <div className="w-4 shrink-0" />}
                 </div>
 
                 {isAdmin && (
