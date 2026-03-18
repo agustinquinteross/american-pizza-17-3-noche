@@ -5,7 +5,18 @@ export async function GET() {
   try {
     const { rows } = await query('SELECT * FROM store_config WHERE id = 1');
     if (rows.length === 0) return NextResponse.json({}, { status: 404 });
-    return NextResponse.json(rows[0]);
+    
+    // Sanitización profunda para JSON (manejo de BigInt y Numeric)
+    const config = JSON.parse(JSON.stringify(rows[0], (key, value) =>
+      typeof value === 'bigint' ? value.toString() : value
+    ));
+
+    // Forzar tipos numéricos para el frontend
+    if (config.delivery_base_price !== null) config.delivery_base_price = Number(config.delivery_base_price);
+    if (config.delivery_free_base_km !== null) config.delivery_free_base_km = Number(config.delivery_free_base_km);
+    if (config.delivery_price_per_extra_km !== null) config.delivery_price_per_extra_km = Number(config.delivery_price_per_extra_km);
+    
+    return NextResponse.json(config);
   } catch (error) {
     return handleError(error);
   }
@@ -50,7 +61,17 @@ export async function PUT(request) {
       console.error('Pusher trigger error:', pError);
     }
 
-    return NextResponse.json(rows[0]);
+    // Sanitización profunda para JSON (manejo de BigInt y Numeric)
+    const updatedConfig = JSON.parse(JSON.stringify(rows[0], (key, value) =>
+      typeof value === 'bigint' ? value.toString() : value
+    ));
+
+    // Forzar tipos numéricos para el frontend
+    if (updatedConfig.delivery_base_price !== null) updatedConfig.delivery_base_price = Number(updatedConfig.delivery_base_price);
+    if (updatedConfig.delivery_free_base_km !== null) updatedConfig.delivery_free_base_km = Number(updatedConfig.delivery_free_base_km);
+    if (updatedConfig.delivery_price_per_extra_km !== null) updatedConfig.delivery_price_per_extra_km = Number(updatedConfig.delivery_price_per_extra_km);
+
+    return NextResponse.json(updatedConfig);
   } catch (error) {
     return handleError(error);
   }
