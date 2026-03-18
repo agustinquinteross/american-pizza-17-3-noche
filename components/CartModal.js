@@ -232,7 +232,7 @@ export default function CartModal({ isOpen, onClose }) {
 
       const mapLink = coords ? `https://www.google.com/maps?q=${coords.lat},${coords.lng}` : ''
       
-      let msg = `¡Hola American Burger! ✨%0A%0ASoy *${name}*.%0APedido *%23${order.id}*%0A`
+      let msg = `¡Hola American Pizza! 🍕%0A%0ASoy *${name}*.%0APedido *%23${order.id}*%0A`
       
       if (deliveryType === 'delivery') {
           msg += `%0A🛵 *ENVÍO A DOMICILIO*`
@@ -251,7 +251,9 @@ export default function CartModal({ isOpen, onClose }) {
       const trackingUrl = `${window.location.origin}/pedido/${order.id}`
       msg += `📍 *SEGUÍ TU PEDIDO EN VIVO ACÁ:*%0A${trackingUrl}`
 
-      window.open(`https://wa.me/${config.whatsapp_number}?text=${msg}`, '_blank')
+      // ✅ FIX: Limpiar el número (quitar espacios, +, guiones) antes de armar el link
+      const waNumber = (config.whatsapp_number || '5493834739072').replace(/[\s+\-()]/g, '')
+      window.open(`https://wa.me/${waNumber}?text=${msg}`, '_blank')
       
       clearCart()
       onClose()
